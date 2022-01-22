@@ -4,7 +4,8 @@ import Wall from '../components/Wall';
 import { OrbitControls, PointerLockControls } from '@react-three/drei';
 import Invitation from '../components/home/Invitation';
 import styled from 'styled-components';
-
+import { Physics } from "@react-three/cannon";
+ 
 extend({ OrbitControls });
 extend({ PointerLockControls });
 
@@ -52,13 +53,13 @@ const Home = () => {
         <Container>                
             <Canvas style={{width: '100vw', height: '100vh'}}>
                 {init && 
-                    <>
+                    <Physics>
                         <Wall position={[0, 0, 0]} rotation={[0, Math.PI / 2, 0]} scale={0.1} />
                         <Wall position={[0.5, 0, 0]} rotation={[0, Math.PI / 2, 0]} scale={0.1} />
                         <Wall position={[0.25, 0, -0.25]} scale={0.1} />
                         <Wall position={[0.25, 0, 0.25]} scale={0.1} />
                         <Wall position={[0, -0.25, 0]} rotation={[Math.PI / 2, 0, 0]} scale={0.5} />
-                    </>
+                    </Physics>
                 }
                 <PointerLockControls ref={person} />
             </Canvas>  
