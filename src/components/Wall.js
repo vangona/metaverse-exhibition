@@ -1,18 +1,19 @@
 import React, { useRef } from 'react';
-import {Canvas,useFrame} from '@react-three/fiber';
+import { Physics, useBox } from "@react-three/cannon";
 
 const Wall = (props) => {
-    const mesh = useRef(null);
-
+    const [boxRef, api] = useBox(() => ({ mass : 1 }))
 
     return (
-      <mesh 
-        {...props}
-        ref={mesh} 
-        >
-        <boxGeometry args={[5, 5, 0.5, 50]} />
-        <meshStandardMaterial attach="material" color={'orange'} />
-      </mesh>
+      <Physics>
+        <mesh 
+          {...props}
+          ref={boxRef} 
+          >
+          <boxGeometry args={[5, 5, 0.5, 50]} />
+          <meshStandardMaterial attach="material" color={'orange'} />
+        </mesh>
+      </Physics>
     );
 
   }

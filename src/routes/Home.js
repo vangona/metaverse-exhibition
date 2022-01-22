@@ -1,10 +1,9 @@
 import { Canvas, extend, useFrame, useThree } from '@react-three/fiber';
 import React, { useEffect, useRef, useState } from 'react';
-import Wall from '../components/Wall';
 import { OrbitControls, PointerLockControls } from '@react-three/drei';
 import Invitation from '../components/home/Invitation';
 import styled from 'styled-components';
-import { Physics } from "@react-three/cannon";
+import { Physics, useBox, usePlane } from '@react-three/cannon';
  
 extend({ OrbitControls });
 extend({ PointerLockControls });
@@ -14,20 +13,44 @@ const Container = styled.div`
     height: 95vh;
 `;
 
-const CameraControls = () => {
-    const {
-        camera,
-        gl: { domElemnet },
-    } = useThree();
-    const controls = useRef();
-    useFrame((state) => controls.current.update());
-    return <OrbitControls ref={controls} args={[camera, domElemnet]} />;
-}
-
 const Home = () => {
     const person = useRef();
     const [init, setInit] = useState(false);
     const velocity = 0.01;
+
+    const Floor = (props) => {
+        const [ref] = usePlane(() => ({ rotation: [-Math.PI / 2, 0, 0], ...props }))
+
+        return (
+            <mesh ref={ref} receiveShadow>
+                <planeGeometry args={[1000, 1000]} />
+                <shadowMaterial color="#171717" transparent opacity={0.4} />
+                <meshLambertMaterial color="lightblue" />
+            </mesh>
+        )
+    }
+
+    const Cube = (props) => {
+        const [ref] = useBox(() => ({ mass: 1, position: [0, 5, 0], rotation: [0.4, 0.2, 0.5], ...props }))
+
+        return (
+            <mesh receiveShadow castShadow ref={ref}>
+                <boxGeometry />
+                <meshLambertMaterial color="hotpink" />
+            </mesh>
+        )
+    }
+
+    const Wall = (props) => {
+        const [ref] = useBox(() => ({ mass: 1, position: [0, 0, 0], ...props }))
+
+        return (
+            <mesh ref={ref}>
+                <boxGeometry args={[5, 5]} />
+                <meshLambertMaterial color="black" />
+            </mesh>
+        )
+    }
 
     const onInvitationClick = () => {
         setInit(true);
@@ -51,14 +74,16 @@ const Home = () => {
 
     return (
         <Container>                
-            <Canvas style={{width: '100vw', height: '100vh'}}>
+        <Canvas color={'blue'} shadows dpr={[1, 2]} gl={{ alpha: false }} camera={{ position: [-1, 5, 5], fov: 45 }}>
+                <ambientLight />
+                <directionalLight position={[10, 10, 10]} castShadow shadow-mapSize={[2048, 2048]} />
                 {init && 
                     <Physics>
-                        <Wall position={[0, 0, 0]} rotation={[0, Math.PI / 2, 0]} scale={0.1} />
-                        <Wall position={[0.5, 0, 0]} rotation={[0, Math.PI / 2, 0]} scale={0.1} />
-                        <Wall position={[0.25, 0, -0.25]} scale={0.1} />
-                        <Wall position={[0.25, 0, 0.25]} scale={0.1} />
-                        <Wall position={[0, -0.25, 0]} rotation={[Math.PI / 2, 0, 0]} scale={0.5} />
+                        <Wall position={[-1, 1, 1]} />
+                        <Floor position={[0, 0, 0]} />
+                        <Cube position={[0.1, 10, 0]} />
+                        <Cube position={[0, 20, -1]} />
+                        <Cube position={[0, 30, -2]} />        
                     </Physics>
                 }
                 <PointerLockControls ref={person} />
