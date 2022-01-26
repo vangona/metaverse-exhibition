@@ -15,11 +15,13 @@ const Container = styled.div`
 
 const Home = () => {
     const person = useRef();
+    const cameraRef = useRef();
+    const wallRef = useRef();
     const [init, setInit] = useState(false);
     const velocity = 0.01;
 
     const Floor = (props) => {
-        const [ref] = usePlane(() => ({ rotation: [-Math.PI / 2, 0, 0], ...props }))
+        const [ref] = usePlane(() => ({ mass: 0, rotation: [-Math.PI / 2, 0, 0], ...props }))
 
         return (
             <mesh ref={ref} receiveShadow>
@@ -31,7 +33,7 @@ const Home = () => {
     }
 
     const Cube = (props) => {
-        const [ref] = useBox(() => ({ mass: 1, position: [0, 5, 0], rotation: [0.4, 0.2, 0.5], ...props }))
+        const [ref] = useBox(() => ({ mass: 1, position: [0, 0, 0], rotation: [0.4, 0.2, 0.5], ...props }))
 
         return (
             <mesh receiveShadow castShadow ref={ref}>
@@ -42,10 +44,10 @@ const Home = () => {
     }
 
     const Wall = (props) => {
-        const [ref] = useBox(() => ({ mass: 1, position: [0, 0, 0], ...props }))
+        const [wallRef] = useBox(() => ({ mass: 1, position: [0, 0, 0], ...props }))
 
         return (
-            <mesh ref={ref}>
+            <mesh ref={wallRef}>
                 <boxGeometry args={[5, 5]} />
                 <meshLambertMaterial color="black" />
             </mesh>
@@ -67,27 +69,27 @@ const Home = () => {
             person.current.moveRight(velocity);
         }
     }
-    
+
     useEffect(() => {
-        window.addEventListener('keydown', keyPress)
+        window.addEventListener('keydown', keyPress);    
     }, [])
 
     return (
         <Container>                
         <Canvas color={'blue'} shadows dpr={[1, 2]} gl={{ alpha: false }} camera={{ position: [-1, 5, 5], fov: 45 }}>
                 <ambientLight />
-                <directionalLight position={[10, 10, 10]} castShadow shadow-mapSize={[2048, 2048]} />
+                <directionalLight ref={wallRef} position={[10, 10, 10]} castShadow shadow-mapSize={[2048, 2048]} />
                 {init && 
                     <Physics>
-                        <Wall position={[-1, 1, 1]} />
+                        <Wall position={[-1, 5, 1]} />
                         <Floor position={[0, 0, 0]} />
-                        <Cube position={[0.1, 10, 0]} />
-                        <Cube position={[0, 20, -1]} />
-                        <Cube position={[0, 30, -2]} />        
+                        <Cube position={[-1, 10, 1]} />
+                        <Cube position={[-1, 20, 1]} />
+                        <Cube position={[-1, 30, 2]} />        
                     </Physics>
                 }
-                <PointerLockControls ref={person} />
-            </Canvas>  
+                <PointerLockControls camera position={[-1, 1, 1]} ref={person} />
+            </Canvas>
             {!init && <Invitation onInvitationClick={onInvitationClick} />}
         </Container>
     );
