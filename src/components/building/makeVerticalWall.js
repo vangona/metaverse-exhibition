@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import CANNON from "cannon";
 
-export default function makeWall(
+export default function makeVerticalWall(
         threeObj={
             'size': [1, 1, 1], 
             'position': {x: 0, y:0, z: 0}, 
@@ -10,8 +10,8 @@ export default function makeWall(
         },
         cannonObj={
             'body': {},
-        }) 
-    {
+        },
+    ) {
 
     // Three.js
     const wallGeometry = new THREE.BoxGeometry(...threeObj.size);
@@ -32,6 +32,7 @@ export default function makeWall(
     });
 
     wallBody.addShape(wallShape);
+    wallBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI / 2);
     wallBody.position.copy(threeObj.position);
 
     const output = {

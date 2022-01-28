@@ -9,6 +9,8 @@ import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockCont
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { AxesHelper, Vector3 } from 'three';
 import makeWall from '../components/building/makeWall';
+import makeVerticalWall from '../components/building/makeVerticalWall';
+import makeBuilding from '../components/building/makeBuilding';
 
 const Container = styled.div``;
 
@@ -24,24 +26,6 @@ const Home = () => {
         renderer.shadowMap.enabled = true;
 
         mount.current.appendChild( renderer.domElement );
-      
-
-        // cube
-        const cubeGeometry = new THREE.SphereGeometry( 1, 20, 20 );
-        const cubeMaterial = new THREE.MeshStandardMaterial( { color: 0x7e31eb } );
-        const cube = new THREE.Mesh( cubeGeometry, cubeMaterial );
-        cube.position.y = 3;
-        cube.castShadow = true;
-        // scene.add( cube );
-
-        // floor
-        const floorGeometry = new THREE.BoxGeometry( 100, 0.1, 100 );
-        const floorMaterial = new THREE.MeshStandardMaterial( { color: 'white' } );
-        const floor = new THREE.Mesh( floorGeometry, floorMaterial );
-        floor.rotation.y = Math.PI / 2;
-        floor.receiveShadow = true;
-
-        scene.add( floor );
 
         const light = new THREE.DirectionalLight( 0xffffbb, 1 );
 
@@ -50,8 +34,8 @@ const Home = () => {
 
         light.castShadow = true;
 
-        light.position.x = 2;
-        light.position.y = 10;
+        light.position.x = 3;
+        light.position.y = 5;
         light.position.z = 2;
         scene.add( light );
 
@@ -59,18 +43,18 @@ const Home = () => {
         camera.position.y = 0.5;
         camera.position.z = 3;
 
-        const controls = new PointerLockControls( camera, renderer.domElement );
+        const controls = new OrbitControls( camera, renderer.domElement );
 
 
         const axesHelper = new THREE.AxesHelper( 5 );
         scene.add( axesHelper );
 
-        // cannon world
+        // cannon world setting
         const world = new CANNON.World();
         world.gravity.set(0, -9.82, 0);
 
 
-        //material
+        // world materials
         const defaultMaterial = new CANNON.Material('default');
         const concreteMaterial = new CANNON.Material('concrete');
         const plasticMaterial = new CANNON.Material('plastic');
@@ -96,82 +80,19 @@ const Home = () => {
         )
 
         world.addContactMaterial(concretePlasticContactMaterial);
-
         world.defaultContactMaterial = defaultContactMaterial;
 
-        // objects
-        const sphereShape = new CANNON.Sphere(1);
-        const sphereBody = new CANNON.Body({
-            mass: 1,
-            position: new CANNON.Vec3(0, 3, 0),
-            shape: sphereShape,
-            material: defaultMaterial
-        })
+        // build buildings
+        const buildings = makeBuilding();
 
-        sphereBody.applyLocalForce(new CANNON.Vec3(150, 0, 0), new CANNON.Vec3(0, 0, 0));
-
-        // world.addBody(sphereBody);
-
-        const floorShape = new CANNON.Plane();
-        const floorBody = new CANNON.Body();
-        floorBody.mass = 0;
-        floorBody.addShape( floorShape );
-        floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(-1, 0, 0), Math.PI / 2);
-
-        floorBody.material = defaultMaterial;
-
-        world.addBody(floorBody);
-
-        const wallThree = {
-                'size': [1, 1, 1], 
-                'position': {x: 0, y:1, z: 0}, 
-                'rotation': {x: 0, y:0, z: 0},
-                'material': {
-                    metalness: 0.3,
-                    roughness: 0.4,
-                },
-            }
-
-        const wallVerticalThree = {
-            'size': [0.1, 1, 1], 
-            'position': {x: 0, y:1, z: 0}, 
-            'rotation': {x: 0, y:Math.PI / 2, z: 0},
-            'material': {
-                metalness: 0.3,
-                roughness: 0.4,
-            },
-        }
-
-        const wallCannon = {
-                'body' : {
-                    mass: 1,
-                    material: defaultMaterial
-                } 
-            }
-
-        const verticalWall = makeWall(wallVerticalThree, wallCannon);
-        const wall = makeWall(wallThree, wallCannon);
-
-        scene.add(wall.mesh);
-        world.addBody(wall.body);
-        // scene.add(verticalWall.mesh);
-        // world.addBody(verticalWall.body);
-
-        const velocity = 0.1;
-
-        const keyPress = (e) => {
-            if (e.keyCode === 119) {
-                wall.body.position.z -= velocity;
-            } else if (e.keyCode === 115) {
-                wall.body.position.z += velocity;
-            } else if (e.keyCode === 97) {
-                wall.body.position.x -= velocity;
-            } else if (e.keyCode === 100) {
-                wall.body.position.x += velocity;
+        for (const building of buildings) {
+            if (building.mesh) {
+                scene.add(building.mesh);
+            } 
+            if (building.body) {
+                world.addBody(building.body);
             }
         }
-
-        window.addEventListener('keypress', keyPress);
 
         // addEventListner
         window.addEventListener('click', () => {
@@ -247,9 +168,6 @@ const Home = () => {
 
             world.step(1 / 60, delataTime, 3);
 
-            camera.position.copy(wall.body.position);
-            camera.position.y += 1;
-            wall.mesh.position.copy(wall.body.position);
             for (const object of objToUpdate) {
                 object.mesh.position.copy(object.body.position)
             }
