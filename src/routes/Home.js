@@ -59,7 +59,7 @@ const Home = () => {
         camera.position.y = 0.5;
         camera.position.z = 3;
 
-        const controls = new OrbitControls( camera, renderer.domElement );
+        const controls = new PointerLockControls( camera, renderer.domElement );
 
 
         const axesHelper = new THREE.AxesHelper( 5 );
@@ -122,12 +122,6 @@ const Home = () => {
 
         world.addBody(floorBody);
 
-        // addEventListner
-        window.addEventListener('click', () => {
-            controls.lock();
-        })
-
-
         const wallThree = {
                 'size': [1, 1, 1], 
                 'position': {x: 0, y:1, z: 0}, 
@@ -162,6 +156,27 @@ const Home = () => {
         world.addBody(wall.body);
         // scene.add(verticalWall.mesh);
         // world.addBody(verticalWall.body);
+
+        const velocity = 0.1;
+
+        const keyPress = (e) => {
+            if (e.keyCode === 119) {
+                wall.body.position.z -= velocity;
+            } else if (e.keyCode === 115) {
+                wall.body.position.z += velocity;
+            } else if (e.keyCode === 97) {
+                wall.body.position.x -= velocity;
+            } else if (e.keyCode === 100) {
+                wall.body.position.x += velocity;
+            }
+        }
+
+        window.addEventListener('keypress', keyPress);
+
+        // addEventListner
+        window.addEventListener('click', () => {
+            controls.lock();
+        })
 
         // functions
         const objToUpdate = [];
@@ -232,6 +247,8 @@ const Home = () => {
 
             world.step(1 / 60, delataTime, 3);
 
+            camera.position.copy(wall.body.position);
+            camera.position.y += 1;
             wall.mesh.position.copy(wall.body.position);
             for (const object of objToUpdate) {
                 object.mesh.position.copy(object.body.position)
