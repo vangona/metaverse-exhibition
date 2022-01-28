@@ -8,6 +8,7 @@ import * as dat from "dat.gui";
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { AxesHelper, Vector3 } from 'three';
+import makeWall from '../components/building/makeWall';
 
 const Container = styled.div``;
 
@@ -141,6 +142,28 @@ const Home = () => {
         window.addEventListener('click', () => {
             controls.lock();
         })
+
+
+        const wallThree = {
+                'size': [0.1, 1, 1], 
+                'position': {x: 0, y:1, z: 0}, 
+                'rotation': {x: 0, y:0, z: 0},
+                'material': {
+                    metalness: 0.3,
+                    roughness: 0.4,
+                },
+            }
+            
+        const wallCannon = {
+                mass: 1,
+                position: new CANNON.Vec3(0, 0, 0),
+                material: defaultMaterial
+            }
+
+        const wall = makeWall(wallThree, wallCannon);
+
+        scene.add(wall.mesh);
+        world.addBody(wall.body);
 
         // functions
         const objToUpdate = [];
