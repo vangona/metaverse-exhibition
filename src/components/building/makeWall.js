@@ -18,23 +18,21 @@ export default function makeWall(
     const wallMaterail = new THREE.MeshStandardMaterial(threeObj.material);
     const wallMesh = new THREE.Mesh( wallGeometry, wallMaterail );
 
-    wallMesh.position.x = threeObj.position.x;
-    wallMesh.position.y = threeObj.position.y;
-    wallMesh.position.z = threeObj.position.z;
-
     wallMesh.rotation.x = threeObj.rotation.x;
     wallMesh.rotation.y = threeObj.rotation.y;
     wallMesh.rotation.z = threeObj.rotation.z;
 
+    wallMesh.position.copy(threeObj.position);
     wallMesh.castShadow = true;
     wallMesh.receiveShadow = true;
 
     // Cannon
-    const wallShape = new CANNON.Box(new CANNON.Vec3(...threeObj.size));
+    const wallShape = new CANNON.Box(new CANNON.Vec3(threeObj.size[0] / 2, threeObj.size[1] / 2, threeObj.size[2] / 2));
     const wallBody = new CANNON.Body({
         ...cannonObj.body,
-        shape: wallShape,
     });
+
+    wallBody.addShape(wallShape);
 
     wallBody.position.copy(threeObj.position);
 

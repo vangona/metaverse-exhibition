@@ -122,22 +122,6 @@ const Home = () => {
 
         world.addBody(floorBody);
 
-        // body with time
-        const clock = new THREE.Clock();
-        let oldElapsedTime = 0;
-
-        const tick = () => {
-            const elapsedTime = clock.getElapsedTime();
-            const delataTime = elapsedTime - oldElapsedTime;
-            oldElapsedTime = elapsedTime;
-
-            world.step(1 / 60, delataTime, 3);
-
-            for (const object of objToUpdate) {
-                object.mesh.position.copy(object.body.position)
-            }
-        }
-
         // addEventListner
         window.addEventListener('click', () => {
             controls.lock();
@@ -145,7 +129,7 @@ const Home = () => {
 
 
         const wallThree = {
-                'size': [0.1, 1, 1], 
+                'size': [1, 1, 1], 
                 'position': {x: 0, y:1, z: 0}, 
                 'rotation': {x: 0, y:0, z: 0},
                 'material': {
@@ -153,17 +137,31 @@ const Home = () => {
                     roughness: 0.4,
                 },
             }
-            
+
+        const wallVerticalThree = {
+            'size': [0.1, 1, 1], 
+            'position': {x: 0, y:1, z: 0}, 
+            'rotation': {x: 0, y:Math.PI / 2, z: 0},
+            'material': {
+                metalness: 0.3,
+                roughness: 0.4,
+            },
+        }
+
         const wallCannon = {
-                mass: 1,
-                position: new CANNON.Vec3(0, 0, 0),
-                material: defaultMaterial
+                'body' : {
+                    mass: 1,
+                    material: defaultMaterial
+                } 
             }
 
+        const verticalWall = makeWall(wallVerticalThree, wallCannon);
         const wall = makeWall(wallThree, wallCannon);
 
         scene.add(wall.mesh);
         world.addBody(wall.body);
+        // scene.add(verticalWall.mesh);
+        // world.addBody(verticalWall.body);
 
         // functions
         const objToUpdate = [];
@@ -222,6 +220,23 @@ const Home = () => {
         }
 
         gui.add(debugObject, 'createSphere')
+
+        // body with time
+        const clock = new THREE.Clock();
+        let oldElapsedTime = 0;
+
+        const tick = () => {
+            const elapsedTime = clock.getElapsedTime();
+            const delataTime = elapsedTime - oldElapsedTime;
+            oldElapsedTime = elapsedTime;
+
+            world.step(1 / 60, delataTime, 3);
+
+            wall.mesh.position.copy(wall.body.position);
+            for (const object of objToUpdate) {
+                object.mesh.position.copy(object.body.position)
+            }
+        }
 
         const animate = function() {
             requestAnimationFrame( animate );
