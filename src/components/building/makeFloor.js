@@ -17,7 +17,6 @@ export default function makeFloor(
     const floorGeometry = new THREE.BoxGeometry(...threeObj.size);
     const floorMaterial = new THREE.MeshStandardMaterial({
         ...threeObj.material,
-        color: 'blue'
     });
     const floorMesh = new THREE.Mesh( floorGeometry, floorMaterial );
 

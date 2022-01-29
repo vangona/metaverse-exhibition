@@ -17,7 +17,6 @@ export default function makeCeil(
     const ceilGeometry = new THREE.BoxGeometry(...threeObj.size);
     const ceilMaterial = new THREE.MeshStandardMaterial({
         ...threeObj.material,
-        color: 'white'
     });
     const ceilMesh = new THREE.Mesh( ceilGeometry, ceilMaterial );
 

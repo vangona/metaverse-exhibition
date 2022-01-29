@@ -7,14 +7,12 @@ import * as dat from "dat.gui";
 
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { AxesHelper, Vector3 } from 'three';
-import makeWall from '../components/building/makeWall';
-import makeVerticalWall from '../components/building/makeVerticalWall';
 import makeBuilding from '../components/building/makeBuilding';
 
 const Container = styled.div``;
 
 const Home = () => {
+    const [controlState, setControlState] = useState(true);
     const mount = useRef();
 
     function init() {
@@ -44,7 +42,6 @@ const Home = () => {
         camera.position.z = 3;
 
         const controls = new OrbitControls( camera, renderer.domElement );
-
 
         const axesHelper = new THREE.AxesHelper( 5 );
         scene.add( axesHelper );
@@ -97,6 +94,10 @@ const Home = () => {
         // addEventListner
         window.addEventListener('click', () => {
             controls.lock();
+        })
+
+        window.addEventListener('resize', () => {
+            renderer.setSize( window.innerWidth, window.innerHeight );
         })
 
         // functions
