@@ -50,18 +50,19 @@ const Seeun = () => {
         scene.add( axesHelper );
 
 
-        const audio = new Audio(seeunMusic);
+        const audio = document.getElementById('seeunAudio');
 
         const context = new AudioContext();
         const analyser = context.createAnalyser();
 
-        const src = context.createMediaElementSource(audio)
-    
-        src.connect(analyser);
         analyser.connect(context.destination);
-        analyser.fftSize = 512;
-        const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
+        analyser.fftSize = 2048;
+        let bufferLength = analyser.frequencyBinCount;
+        let dataArray = new Uint8Array(bufferLength);
+        analyser.getByteTimeDomainData(dataArray);
+
+        const src = context.createMediaElementSource(audio);
+        src.connect(analyser);
 
         // cannon world setting
         const world = new CANNON.World();
@@ -144,10 +145,26 @@ const Seeun = () => {
             const delataTime = elapsedTime - oldElapsedTime;
             oldElapsedTime = elapsedTime;
 
+            analyser.getByteTimeDomainData(dataArray);
+
+            const lowerHalfArray = dataArray.slice(0, (dataArray.length/2) - 1);
+            const upperHalfArray = dataArray.slice((dataArray.length/2) - 1, dataArray.length - 1);
+      
+            const overallAvg = avg(dataArray);
+            const lowerMax = max(lowerHalfArray);
+            const lowerAvg = avg(lowerHalfArray);
+            const upperMax = max(upperHalfArray);
+            const upperAvg = avg(upperHalfArray);
+      
+            const lowerMaxFr = lowerMax / lowerHalfArray.length;
+            const lowerAvgFr = lowerAvg / lowerHalfArray.length;
+            const upperMaxFr = upperMax / upperHalfArray.length;
+            const upperAvgFr = upperAvg / upperHalfArray.length;
+
             particles.rotation.x = elapsedTime * 0.1;
             particles.rotation.y = elapsedTime * 0.1;
             particles.rotation.z = elapsedTime * 0.1;     
-
+            
             world.step(1 / 60, delataTime, 3);
         }
 
@@ -161,8 +178,9 @@ const Seeun = () => {
         animate();
 
         window.addEventListener('click', () => {
-            vizMusic();
-            // audio.play();
+            // vizMusic();
+            audio.play();
+            context.resume();
             controls.lock();
         })
 
@@ -185,6 +203,7 @@ const Seeun = () => {
                 sound.play();
             })
         }
+
         function avg(arr){
             var total = arr.reduce(function(sum, b) { return sum + b; });
             return (total / arr.length);
@@ -201,7 +220,7 @@ const Seeun = () => {
 
     return (
         <Container ref={mount}>
-            <audio id='seeunAudio' src={seeunMusic} autoPlay />
+            <audio id='seeunAudio' src={seeunMusic} />
         </Container>
     );
 };
