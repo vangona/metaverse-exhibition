@@ -80,13 +80,15 @@ const Seeun = () => {
         particlesMaterial.transparent = true;
         particlesMaterial.alphaMap = particleTexture;
         particlesMaterial.alphaTest = 0.1;
+        particlesMaterial.size = 0.1;
+        particlesMaterial.sizeAttenuation = true;
 
         const positions = new Float32Array(count * 3);
         const colors = new Float32Array(count * 3);
         const sizes = new Float32Array(count);
 
         for (let i = 0; i < count; i++) {
-            sizes[i] = 100;
+            sizes[i] = 20;
         }
 
         for (let i = 0; i < count * 3; i++) {
@@ -160,6 +162,8 @@ const Seeun = () => {
         let bMax = 0.750;
         let bMin = 0.550;
 
+        let lowerSum = 0;
+        let upperSum = 0;
         const tick = () => {
             const elapsedTime = clock.getElapsedTime();
             const delataTime = elapsedTime - oldElapsedTime;
@@ -187,22 +191,24 @@ const Seeun = () => {
                     let g = particlesGeometry.attributes.color.array[i + 1];
                     let b = particlesGeometry.attributes.color.array[i + 2];
 
+                    const randNum = Math.random() * 0.002;
+
                     if (rState) {
-                        r += lowerMaxFr / 1000;
+                        r += lowerMaxFr * randNum;
                     } else {
-                        r -= lowerMaxFr / 1000;
+                        r -= lowerMaxFr * randNum;
                     }
 
                     if (gState) {
-                        g += upperMaxFr / 1000;
+                        g += upperMaxFr * randNum;
                     } else {
-                        g -= upperMaxFr / 1000;
+                        g -= upperMaxFr * randNum;
                     }
 
                     if (bState) {
-                        b += lowerAvgFr / 1000;
+                        b += lowerAvgFr * randNum;
                     } else {
-                        b -= lowerAvgFr / 1000;
+                        b -= lowerAvgFr * randNum;
                     }
                     
                     if (r > rMax) {
@@ -233,15 +239,32 @@ const Seeun = () => {
 
                 const sizes = particlesGeometry.attributes.size.array;
                 for (let i = 0; i < count; i++) {
-                    sizes[i] = elapsedTime;
+                    sizes[ i ] = 10 * ( 1 + Math.sin( 0.1 * i + elapsedTime ) );
                 }
 
                 particlesGeometry.attributes.color.needsUpdate = true;
                 particlesGeometry.attributes.size.needsUpdate = true;
+
+                const velocity = overallAvg / 2000;
                 
+                for(let i = 0; i < count; i += 3)
+                {
+                    lowerSum += lowerAvgFr / 50000;
+                    upperSum += upperAvgFr / 50000;
+                    const x = particlesGeometry.attributes.position.array[i]
+                    particlesGeometry.attributes.position.array[i + 1] = Math.sin(lowerSum + x)
+                }
+                particlesGeometry.attributes.position.needsUpdate = true
+            
                 particles.rotation.x = elapsedTime * 0.1;
                 particles.rotation.y = elapsedTime * 0.1;
                 particles.rotation.z = elapsedTime * 0.1;
+
+                if (elapsedTime < 7) {
+                    particles.scale.x = elapsedTime * velocity.toFixed(1);
+                    particles.scale.y = elapsedTime * velocity.toFixed(1);
+                    particles.scale.z = elapsedTime * velocity.toFixed(1);
+                }                
             }
 
             world.step(1 / 60, delataTime, 3);

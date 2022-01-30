@@ -57,5 +57,8 @@
       "last 1 safari version"
     ]
   },
-  "homepage": "https://metaverse-exhibition.netlify.app/"
+  "homepage": "https://metaverse-exhibition.netlify.app/",
+  "devDependencies": {
+    "mini-css-extract-plugin": "2.4.5"
+  }
 }
