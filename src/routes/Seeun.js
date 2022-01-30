@@ -73,23 +73,34 @@ const Seeun = () => {
         const count = 1000;
         const particlesMaterial = new THREE.PointsMaterial();
         particlesMaterial.vertexColors = true;
-        particlesMaterial.size = 0.05;
-        particlesMaterial.sizeAttenuation = true;
 
         const textureLoader = new THREE.TextureLoader();
         const particleTexture = textureLoader.load(fog);
 
-        particlesMaterial.map = particleTexture;
+        particlesMaterial.transparent = true;
+        particlesMaterial.alphaMap = particleTexture;
+        particlesMaterial.alphaTest = 0.1;
 
         const positions = new Float32Array(count * 3);
         const colors = new Float32Array(count * 3);
+        const sizes = new Float32Array(count);
+
+        for (let i = 0; i < count; i++) {
+            sizes[i] = 100;
+        }
 
         for (let i = 0; i < count * 3; i++) {
             positions[i] = (Math.random() - 0.5) * 10;
-            colors[i] = Math.random();
+        }
+
+        for (let i = 0; i < count * 3; i += 3) {
+            colors[i] = 0.392;
+            colors[i + 1] = 0.396;
+            colors[i + 2] = 0.650;
         }
 
         particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        particlesGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1).setUsage( THREE.DynamicDrawUsage ));
         particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
         const particles = new THREE.Points(particlesGeometry, particlesMaterial);
@@ -139,32 +150,100 @@ const Seeun = () => {
 
         const clock = new THREE.Clock();
         let oldElapsedTime = 0;
+        let rState = false;
+        let gState = false;
+        let bState = false;
+        let rMax = 0.492;
+        let rMin = 0.292;
+        let gMax = 0.496;
+        let gMin = 0.296;
+        let bMax = 0.750;
+        let bMin = 0.550;
 
         const tick = () => {
             const elapsedTime = clock.getElapsedTime();
             const delataTime = elapsedTime - oldElapsedTime;
             oldElapsedTime = elapsedTime;
 
-            analyser.getByteTimeDomainData(dataArray);
+            if (!audio.paused) {
+                analyser.getByteTimeDomainData(dataArray);
 
-            const lowerHalfArray = dataArray.slice(0, (dataArray.length/2) - 1);
-            const upperHalfArray = dataArray.slice((dataArray.length/2) - 1, dataArray.length - 1);
-      
-            const overallAvg = avg(dataArray);
-            const lowerMax = max(lowerHalfArray);
-            const lowerAvg = avg(lowerHalfArray);
-            const upperMax = max(upperHalfArray);
-            const upperAvg = avg(upperHalfArray);
-      
-            const lowerMaxFr = lowerMax / lowerHalfArray.length;
-            const lowerAvgFr = lowerAvg / lowerHalfArray.length;
-            const upperMaxFr = upperMax / upperHalfArray.length;
-            const upperAvgFr = upperAvg / upperHalfArray.length;
+                const lowerHalfArray = dataArray.slice(0, (dataArray.length/2) - 1);
+                const upperHalfArray = dataArray.slice((dataArray.length/2) - 1, dataArray.length - 1);
+          
+                const overallAvg = avg(dataArray);
+                const lowerMax = max(lowerHalfArray);
+                const lowerAvg = avg(lowerHalfArray);
+                const upperMax = max(upperHalfArray);
+                const upperAvg = avg(upperHalfArray);
+          
+                const lowerMaxFr = lowerMax / lowerHalfArray.length;
+                const lowerAvgFr = lowerAvg / lowerHalfArray.length;
+                const upperMaxFr = upperMax / upperHalfArray.length;
+                const upperAvgFr = upperAvg / upperHalfArray.length;
 
-            particles.rotation.x = elapsedTime * 0.1;
-            particles.rotation.y = elapsedTime * 0.1;
-            particles.rotation.z = elapsedTime * 0.1;     
-            
+                for (let i = 0; i < count * 3; i += 3) {
+                    let r = particlesGeometry.attributes.color.array[i];
+                    let g = particlesGeometry.attributes.color.array[i + 1];
+                    let b = particlesGeometry.attributes.color.array[i + 2];
+
+                    if (rState) {
+                        r += lowerMaxFr / 1000;
+                    } else {
+                        r -= lowerMaxFr / 1000;
+                    }
+
+                    if (gState) {
+                        g += upperMaxFr / 1000;
+                    } else {
+                        g -= upperMaxFr / 1000;
+                    }
+
+                    if (bState) {
+                        b += lowerAvgFr / 1000;
+                    } else {
+                        b -= lowerAvgFr / 1000;
+                    }
+                    
+                    if (r > rMax) {
+                        rState = false;
+                    } 
+                    if (r < rMin) {
+                        rState = true;
+                    }
+
+                    if (g > gMax) {
+                        gState = false;
+                    }
+                    if (g < gMin) {
+                        gState = true;
+                    }
+
+                    if (b > bMax) {
+                        bState = false;
+                    }
+                    if (b < bMin) {
+                        bState = true;
+                    }
+
+                    particlesGeometry.attributes.color.array[i] = r;
+                    particlesGeometry.attributes.color.array[i + 1] = g;
+                    particlesGeometry.attributes.color.array[i + 2] = b;
+                }
+
+                const sizes = particlesGeometry.attributes.size.array;
+                for (let i = 0; i < count; i++) {
+                    sizes[i] = elapsedTime;
+                }
+
+                particlesGeometry.attributes.color.needsUpdate = true;
+                particlesGeometry.attributes.size.needsUpdate = true;
+                
+                particles.rotation.x = elapsedTime * 0.1;
+                particles.rotation.y = elapsedTime * 0.1;
+                particles.rotation.z = elapsedTime * 0.1;
+            }
+
             world.step(1 / 60, delataTime, 3);
         }
 
@@ -179,8 +258,12 @@ const Seeun = () => {
 
         window.addEventListener('click', () => {
             // vizMusic();
-            audio.play();
-            context.resume();
+            if(audio.paused) {
+                context.resume();
+                audio.play();    
+            } else {
+                audio.pause();
+            }
             controls.lock();
         })
 
