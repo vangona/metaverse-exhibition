@@ -19,7 +19,7 @@ export default function makeSeeunBuilding() {
         'material': {
             metalness: 0.3,
             roughness: 0.4,
-            color: 'black',
+            color: 'white',
         },
     }
 
@@ -30,7 +30,7 @@ export default function makeSeeunBuilding() {
         'material': {
             metalness: 0.3,
             roughness: 0.4,
-            color: 'black',
+            color: 'white',
         },
     }
 
@@ -41,7 +41,7 @@ export default function makeSeeunBuilding() {
         'material': {
             metalness: 0.3,
             roughness: 0.4,
-            color: 'black',
+            color: 'white',
         },
     }
 
@@ -52,7 +52,7 @@ export default function makeSeeunBuilding() {
         'material': {
             metalness: 0.3,
             roughness: 0.4,
-            color: 'black',
+            color: 'white',
         },
     }
 
@@ -61,7 +61,7 @@ export default function makeSeeunBuilding() {
         'size': [100, 0.1, 100],
         'rotation': {x: 0, y:Math.PI / 2, z: 0},
         'material': {
-            color: 'black'
+            color: 'white'
         }
     }
 
@@ -71,7 +71,7 @@ export default function makeSeeunBuilding() {
         'position': {x: 0, y: 10, z: 0},
         'rotation': {x: 0, y:Math.PI / 2, z: 0},
         'material': {
-            color: 'black',
+            color: 'white',
         }
     }
 

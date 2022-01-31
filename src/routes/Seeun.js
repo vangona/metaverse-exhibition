@@ -44,11 +44,9 @@ const Seeun = () => {
         camera.position.y = 2.5;
         camera.position.z = 0;
 
-        const controls = new PointerLockControls( camera, renderer.domElement );
+        const controls = new OrbitControls( camera, renderer.domElement );
 
         const axesHelper = new THREE.AxesHelper( 5 );
-        scene.add( axesHelper );
-
 
         const audio = document.getElementById('seeunAudio');
 
@@ -76,9 +74,9 @@ const Seeun = () => {
 
         const textureLoader = new THREE.TextureLoader();
         const particleTexture = textureLoader.load(fog);
+        particlesMaterial.alphaMap = particleTexture;
 
         particlesMaterial.transparent = true;
-        particlesMaterial.alphaMap = particleTexture;
         particlesMaterial.alphaTest = 0.1;
         particlesMaterial.size = 0.1;
         particlesMaterial.sizeAttenuation = true;
@@ -108,47 +106,9 @@ const Seeun = () => {
         const particles = new THREE.Points(particlesGeometry, particlesMaterial);
         scene.add(particles);
 
-        particles.position.y = 2;
-
-        // world materials
-        const defaultMaterial = new CANNON.Material('default');
-        const concreteMaterial = new CANNON.Material('concrete');
-        const plasticMaterial = new CANNON.Material('plastic');
-
-        const defaultContactMaterial = new CANNON.ContactMaterial(
-            defaultMaterial,
-            defaultMaterial,
-            {
-                friction: 0.1,
-                restitution: 0.7
-            }
-        )
-
-        world.addContactMaterial(defaultContactMaterial);
-
-        const concretePlasticContactMaterial = new CANNON.ContactMaterial(
-            concreteMaterial,
-            plasticMaterial,
-            {
-                friction: 0.1,
-                restitution: 0.7
-            }
-        )
-
-        world.addContactMaterial(concretePlasticContactMaterial);
-        world.defaultContactMaterial = defaultContactMaterial;
+        particles.position.y = 2.5;
 
         // build buildings
-        const buildings = makeSeeunBuilding();
-
-        for (const building of buildings) {
-            if (building.mesh) {
-                scene.add(building.mesh);
-            } 
-            if (building.body) {
-                world.addBody(building.body);
-            }
-        }
 
         const clock = new THREE.Clock();
         let oldElapsedTime = 0;
@@ -169,22 +129,43 @@ const Seeun = () => {
             const delataTime = elapsedTime - oldElapsedTime;
             oldElapsedTime = elapsedTime;
 
-            if (!audio.paused) {
-                analyser.getByteTimeDomainData(dataArray);
+            analyser.getByteTimeDomainData(dataArray);
 
-                const lowerHalfArray = dataArray.slice(0, (dataArray.length/2) - 1);
-                const upperHalfArray = dataArray.slice((dataArray.length/2) - 1, dataArray.length - 1);
-          
-                const overallAvg = avg(dataArray);
-                const lowerMax = max(lowerHalfArray);
-                const lowerAvg = avg(lowerHalfArray);
-                const upperMax = max(upperHalfArray);
-                const upperAvg = avg(upperHalfArray);
-          
-                const lowerMaxFr = lowerMax / lowerHalfArray.length;
-                const lowerAvgFr = lowerAvg / lowerHalfArray.length;
-                const upperMaxFr = upperMax / upperHalfArray.length;
-                const upperAvgFr = upperAvg / upperHalfArray.length;
+            const lowerHalfArray = dataArray.slice(0, (dataArray.length/2) - 1);
+            const upperHalfArray = dataArray.slice((dataArray.length/2) - 1, dataArray.length - 1);
+      
+            const overallAvg = avg(dataArray);
+            const lowerMax = max(lowerHalfArray);
+            const lowerAvg = avg(lowerHalfArray);
+            const upperMax = max(upperHalfArray);
+            const upperAvg = avg(upperHalfArray);
+      
+            const lowerMaxFr = lowerMax / lowerHalfArray.length;
+            const lowerAvgFr = lowerAvg / lowerHalfArray.length;
+            const upperMaxFr = upperMax / upperHalfArray.length;
+            const upperAvgFr = upperAvg / upperHalfArray.length;
+
+            if (audio.paused) {
+                const speed = 0.01;
+
+                for (let i = 0; i < count * 3; i += 3) {
+                    const y = particlesGeometry.attributes.position.array[i + 1];
+                    if (Math.abs(y) > 0) {
+                        if (y > 0) {
+                            particlesGeometry.attributes.position.array[i + 1] = y - speed;
+                        } else {
+                            particlesGeometry.attributes.position.array[i + 1] = y + speed;
+                        }
+                    }
+                }
+                particlesGeometry.attributes.position.needsUpdate = true
+
+                camera.position.y = 12;
+
+                camera.rotation.z = particles.rotation.z;
+            }
+
+            if (!audio.paused) {
 
                 for (let i = 0; i < count * 3; i += 3) {
                     let r = particlesGeometry.attributes.color.array[i];
@@ -247,12 +228,23 @@ const Seeun = () => {
 
                 const velocity = overallAvg / 2000;
                 
+                lowerSum += lowerAvgFr / 100;
+                upperSum += upperAvgFr / 100;
                 for(let i = 0; i < count; i += 3)
                 {
-                    lowerSum += lowerAvgFr / 50000;
-                    upperSum += upperAvgFr / 50000;
                     const x = particlesGeometry.attributes.position.array[i]
                     particlesGeometry.attributes.position.array[i + 1] = Math.sin(lowerSum + x)
+                }
+
+                for (let i = count * 2; i < count * 3; i++) {
+                    const x = particlesGeometry.attributes.position.array[i]
+                    particlesGeometry.attributes.position.array[i] = Math.sin(x + (Math.random() - 0.5) / 10000) * 5;
+
+                    const y = particlesGeometry.attributes.position.array[i]
+                    particlesGeometry.attributes.position.array[i + 1] = Math.sin(y + (Math.random() - 0.5) / 10000) * 5;
+
+                    const z = particlesGeometry.attributes.position.array[i]
+                    particlesGeometry.attributes.position.array[i + 2] = Math.sin(z + (Math.random() - 0.5) / 10000) * 5;
                 }
                 particlesGeometry.attributes.position.needsUpdate = true
             
@@ -260,11 +252,11 @@ const Seeun = () => {
                 particles.rotation.y = elapsedTime * 0.1;
                 particles.rotation.z = elapsedTime * 0.1;
 
-                if (elapsedTime < 7) {
+                if (particles.scale.x < 1) {
                     particles.scale.x = elapsedTime * velocity.toFixed(1);
                     particles.scale.y = elapsedTime * velocity.toFixed(1);
                     particles.scale.z = elapsedTime * velocity.toFixed(1);
-                }                
+                }     
             }
 
             world.step(1 / 60, delataTime, 3);
@@ -287,7 +279,6 @@ const Seeun = () => {
             } else {
                 audio.pause();
             }
-            controls.lock();
         })
 
         window.addEventListener('resize', () => {
