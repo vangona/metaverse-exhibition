@@ -45,8 +45,7 @@ const Seeun = () => {
         camera.position.z = 0;
 
         const controls = new OrbitControls( camera, renderer.domElement );
-
-        const axesHelper = new THREE.AxesHelper( 5 );
+        controls.enabled = false;
 
         const audio = document.getElementById('seeunAudio');
 
@@ -71,15 +70,11 @@ const Seeun = () => {
 
         const textureLoader = new THREE.TextureLoader();
         const particleTexture = textureLoader.load(fog);
-        const count = 1000;
+        const count = 500;
 
         const positions = new Float32Array(count * 3);
         const colors = new Float32Array(count * 3);
-        const sizes = new Float32Array(count);
 
-        for (let i = 0; i < count; i++) {
-            sizes[i] = 20;
-        }
         for (let i = 0; i < count * 3; i++) {
             positions[i] = (Math.random() - 0.5) * 10;
         }
@@ -89,7 +84,7 @@ const Seeun = () => {
             colors[i + 2] = 0.650;
         }
 
-        const sphereVisualizerGeometry = new THREE.SphereBufferGeometry(0.8, 24, 24);
+        const sphereVisualizerGeometry = new THREE.SphereBufferGeometry(0.6, 24, 24);
 
         const sphereVisualizerMaterial = new THREE.PointsMaterial();
         sphereVisualizerMaterial.alphaMap = particleTexture;
@@ -118,7 +113,7 @@ const Seeun = () => {
         particlesMaterial.sizeAttenuation = true;
 
         particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        particlesGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1).setUsage( THREE.DynamicDrawUsage ));
+
         particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
         const particles = new THREE.Points(particlesGeometry, particlesMaterial);
@@ -142,6 +137,7 @@ const Seeun = () => {
 
         let lowerSum = 0;
         let upperSum = 0;
+
         const tick = () => {
             const elapsedTime = clock.getElapsedTime();
             const delataTime = elapsedTime - oldElapsedTime;
@@ -170,19 +166,23 @@ const Seeun = () => {
                 particles.rotation.y = 0;
                 particles.rotation.z = 0;
 
-                for (let i = 0; i < count * 3; i += 3) {
-                    const y = particlesGeometry.attributes.position.array[i + 1];
-                    if (Math.abs(y) > 0) {
-                        if (y > 0) {
-                            particlesGeometry.attributes.position.array[i + 1] = y - speed;
-                        } else {
-                            particlesGeometry.attributes.position.array[i + 1] = y + speed;
+                if (particlesGeometry.attributes.position.array) {
+                    for (let i = 0; i < count * 3; i += 3) {
+                        const y = particlesGeometry.attributes.position.array[i + 1];
+                        if (Math.abs(y) > 0) {
+                            if (y > 0) {
+                                particlesGeometry.attributes.position.array[i + 1] = y - speed;
+                            } else {
+                                particlesGeometry.attributes.position.array[i + 1] = y + speed;
+                            }
                         }
                     }
                 }
                 particlesGeometry.attributes.position.needsUpdate = true
 
+                camera.position.x = 0;
                 camera.position.y = 9;
+                camera.position.z = 0;
 
                 camera.rotation.z = particles.rotation.z;
             }
@@ -240,13 +240,7 @@ const Seeun = () => {
                     particlesGeometry.attributes.color.array[i + 2] = b;
                 }
 
-                const sizes = particlesGeometry.attributes.size.array;
-                for (let i = 0; i < count; i++) {
-                    sizes[ i ] = 10 * ( 1 + Math.sin( 0.1 * i + elapsedTime ) );
-                }
-
                 particlesGeometry.attributes.color.needsUpdate = true;
-                particlesGeometry.attributes.size.needsUpdate = true;
 
                 const velocity = overallAvg / 2000;
                 
@@ -273,16 +267,10 @@ const Seeun = () => {
                 particles.rotation.y = elapsedTime * 0.1;
                 particles.rotation.z = elapsedTime * 0.1;
 
-                if (particles.scale.x < 0.8) {
-                    particles.scale.x = elapsedTime * velocity.toFixed(1);
-                    particles.scale.y = elapsedTime * velocity.toFixed(1);
-                    particles.scale.z = elapsedTime * velocity.toFixed(1);
-                }     
+                sphereVisualizer.rotation.y += lowerAvgFr / 500;
             }
 
             sphereVisualizer.scale.x = sphereVisualizer.scale.y = sphereVisualizer.scale.z = 3 + lowerMaxFr / 2 + upperMaxFr / 2;
-            
-            sphereVisualizer.rotation.y += lowerAvgFr / 500;
 
             world.step(1 / 60, delataTime, 3);
         }
