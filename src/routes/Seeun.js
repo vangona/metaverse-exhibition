@@ -66,20 +66,12 @@ const Seeun = () => {
         const world = new CANNON.World();
         world.gravity.set(0, -9.82, 0);
 
-        // Particles\
-        const particlesGeometry = new THREE.SphereBufferGeometry(1, 32, 32);
-        const count = 1000;
-        const particlesMaterial = new THREE.PointsMaterial();
-        particlesMaterial.vertexColors = true;
+
+        // visualizers
 
         const textureLoader = new THREE.TextureLoader();
         const particleTexture = textureLoader.load(fog);
-        particlesMaterial.alphaMap = particleTexture;
-
-        particlesMaterial.transparent = true;
-        particlesMaterial.alphaTest = 0.1;
-        particlesMaterial.size = 0.1;
-        particlesMaterial.sizeAttenuation = true;
+        const count = 1000;
 
         const positions = new Float32Array(count * 3);
         const colors = new Float32Array(count * 3);
@@ -88,16 +80,42 @@ const Seeun = () => {
         for (let i = 0; i < count; i++) {
             sizes[i] = 20;
         }
-
         for (let i = 0; i < count * 3; i++) {
             positions[i] = (Math.random() - 0.5) * 10;
         }
-
         for (let i = 0; i < count * 3; i += 3) {
             colors[i] = 0.392;
             colors[i + 1] = 0.396;
             colors[i + 2] = 0.650;
         }
+
+        const sphereVisualizerGeometry = new THREE.SphereBufferGeometry(0.8, 24, 24);
+
+        const sphereVisualizerMaterial = new THREE.PointsMaterial();
+        sphereVisualizerMaterial.alphaMap = particleTexture;
+
+        sphereVisualizerMaterial.transparent = true;
+        sphereVisualizerMaterial.alphaTest = 0.1;
+        sphereVisualizerMaterial.size = 0.11;
+        sphereVisualizerMaterial.sizeAttenuation = true;
+
+        const sphereVisualizer = new THREE.Points(sphereVisualizerGeometry, sphereVisualizerMaterial);
+
+        sphereVisualizer.position.y = 2.5;
+        sphereVisualizerMaterial.color = new THREE.Color('#6667AB')
+        
+        scene.add(sphereVisualizer);
+
+        // Particles
+        const particlesGeometry = new THREE.SphereBufferGeometry(1, 32, 32);
+        const particlesMaterial = new THREE.PointsMaterial();
+        particlesMaterial.vertexColors = true;
+        particlesMaterial.alphaMap = particleTexture;
+
+        particlesMaterial.transparent = true;
+        particlesMaterial.alphaTest = 0.1;
+        particlesMaterial.size = 0.12;
+        particlesMaterial.sizeAttenuation = true;
 
         particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         particlesGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1).setUsage( THREE.DynamicDrawUsage ));
@@ -148,6 +166,10 @@ const Seeun = () => {
             if (audio.paused) {
                 const speed = 0.01;
 
+                particles.rotation.x = 0;
+                particles.rotation.y = 0;
+                particles.rotation.z = 0;
+
                 for (let i = 0; i < count * 3; i += 3) {
                     const y = particlesGeometry.attributes.position.array[i + 1];
                     if (Math.abs(y) > 0) {
@@ -160,7 +182,7 @@ const Seeun = () => {
                 }
                 particlesGeometry.attributes.position.needsUpdate = true
 
-                camera.position.y = 12;
+                camera.position.y = 9;
 
                 camera.rotation.z = particles.rotation.z;
             }
@@ -235,7 +257,6 @@ const Seeun = () => {
                     const x = particlesGeometry.attributes.position.array[i]
                     particlesGeometry.attributes.position.array[i + 1] = Math.sin(lowerSum + x)
                 }
-
                 for (let i = count * 2; i < count * 3; i++) {
                     const x = particlesGeometry.attributes.position.array[i]
                     particlesGeometry.attributes.position.array[i] = Math.sin(x + (Math.random() - 0.5) / 10000) * 5;
@@ -252,12 +273,16 @@ const Seeun = () => {
                 particles.rotation.y = elapsedTime * 0.1;
                 particles.rotation.z = elapsedTime * 0.1;
 
-                if (particles.scale.x < 1) {
+                if (particles.scale.x < 0.8) {
                     particles.scale.x = elapsedTime * velocity.toFixed(1);
                     particles.scale.y = elapsedTime * velocity.toFixed(1);
                     particles.scale.z = elapsedTime * velocity.toFixed(1);
                 }     
             }
+
+            sphereVisualizer.scale.x = sphereVisualizer.scale.y = sphereVisualizer.scale.z = 3 + lowerMaxFr / 2 + upperMaxFr / 2;
+            
+            sphereVisualizer.rotation.y += lowerAvgFr / 500;
 
             world.step(1 / 60, delataTime, 3);
         }
@@ -274,6 +299,9 @@ const Seeun = () => {
         window.addEventListener('click', () => {
             // vizMusic();
             if(audio.paused) {
+                for (let i = count; i < count * 2; i++) {
+                    particlesGeometry.attributes.position.array[i] = (Math.random() - 0.5) * 10;
+                }
                 context.resume();
                 audio.play();    
             } else {
