@@ -45,7 +45,7 @@ const Seeun = () => {
         camera.position.z = 0;
 
         const controls = new OrbitControls( camera, renderer.domElement );
-        controls.enabled = false;
+        controls.enabled = true;
 
         const audio = document.getElementById('seeunAudio');
 
@@ -70,19 +70,6 @@ const Seeun = () => {
 
         const textureLoader = new THREE.TextureLoader();
         const particleTexture = textureLoader.load(fog);
-        const count = 500;
-
-        const positions = new Float32Array(count * 3);
-        const colors = new Float32Array(count * 3);
-
-        for (let i = 0; i < count * 3; i++) {
-            positions[i] = (Math.random() - 0.5) * 10;
-        }
-        for (let i = 0; i < count * 3; i += 3) {
-            colors[i] = 0.392;
-            colors[i + 1] = 0.396;
-            colors[i + 2] = 0.650;
-        }
 
         const sphereVisualizerGeometry = new THREE.SphereBufferGeometry(0.6, 24, 24);
 
@@ -102,18 +89,30 @@ const Seeun = () => {
         scene.add(sphereVisualizer);
 
         // Particles
-        const particlesGeometry = new THREE.SphereBufferGeometry(1, 32, 32);
+        const particlesGeometry = new THREE.BufferGeometry();
         const particlesMaterial = new THREE.PointsMaterial();
         particlesMaterial.vertexColors = true;
         particlesMaterial.alphaMap = particleTexture;
 
-        particlesMaterial.transparent = true;
-        particlesMaterial.alphaTest = 0.1;
-        particlesMaterial.size = 0.12;
+        particlesMaterial.alphaTest = 0.2;
+        particlesMaterial.size = 0.11;
         particlesMaterial.sizeAttenuation = true;
 
-        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const count = 500;
 
+        const positions = new Float32Array(count * 3);
+        const colors = new Float32Array(count * 3);
+
+        for (let i = 0; i < count * 3; i++) {
+            positions[i] = (Math.random() - 0.5) * 10;
+        }
+        for (let i = 0; i < count * 3; i += 3) {
+            colors[i] = 0.392;
+            colors[i + 1] = 0.396;
+            colors[i + 2] = 0.650;
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
         const particles = new THREE.Points(particlesGeometry, particlesMaterial);
@@ -263,9 +262,9 @@ const Seeun = () => {
                 }
                 particlesGeometry.attributes.position.needsUpdate = true
             
-                particles.rotation.x = elapsedTime * 0.1;
-                particles.rotation.y = elapsedTime * 0.1;
-                particles.rotation.z = elapsedTime * 0.1;
+                particles.rotation.x = lowerSum * 0.1;
+                particles.rotation.y = lowerSum * 0.1;
+                particles.rotation.z = lowerSum * 0.1;
 
                 sphereVisualizer.rotation.y += lowerAvgFr / 500;
             }
