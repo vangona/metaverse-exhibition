@@ -94,11 +94,11 @@ const Seeun = () => {
         particlesMaterial.vertexColors = true;
         particlesMaterial.alphaMap = particleTexture;
 
-        particlesMaterial.alphaTest = 0.2;
-        particlesMaterial.size = 0.11;
+        particlesMaterial.alphaTest = 0.1;
+        particlesMaterial.size = 0.1;
         particlesMaterial.sizeAttenuation = true;
 
-        const count = 500;
+        const count = 250;
 
         const positions = new Float32Array(count * 3);
         const colors = new Float32Array(count * 3);
@@ -136,6 +136,10 @@ const Seeun = () => {
 
         let lowerSum = 0;
         let upperSum = 0;
+
+        camera.position.x = 0;
+        camera.position.y = 9;
+        camera.position.z = 0;
 
         const tick = () => {
             const elapsedTime = clock.getElapsedTime();
@@ -178,12 +182,6 @@ const Seeun = () => {
                     }
                 }
                 particlesGeometry.attributes.position.needsUpdate = true
-
-                camera.position.x = 0;
-                camera.position.y = 9;
-                camera.position.z = 0;
-
-                camera.rotation.z = particles.rotation.z;
             }
 
             if (!audio.paused) {
@@ -216,6 +214,7 @@ const Seeun = () => {
                     if (r > rMax) {
                         rState = false;
                     } 
+
                     if (r < rMin) {
                         rState = true;
                     }
@@ -250,16 +249,13 @@ const Seeun = () => {
                     const x = particlesGeometry.attributes.position.array[i]
                     particlesGeometry.attributes.position.array[i + 1] = Math.sin(lowerSum + x)
                 }
+
                 for (let i = count * 2; i < count * 3; i++) {
                     const x = particlesGeometry.attributes.position.array[i]
+
                     particlesGeometry.attributes.position.array[i] = Math.sin(x + (Math.random() - 0.5) / 10000) * 5;
-
-                    const y = particlesGeometry.attributes.position.array[i]
-                    particlesGeometry.attributes.position.array[i + 1] = Math.sin(y + (Math.random() - 0.5) / 10000) * 5;
-
-                    const z = particlesGeometry.attributes.position.array[i]
-                    particlesGeometry.attributes.position.array[i + 2] = Math.sin(z + (Math.random() - 0.5) / 10000) * 5;
                 }
+
                 particlesGeometry.attributes.position.needsUpdate = true
             
                 particles.rotation.x = lowerSum * 0.1;
@@ -283,20 +279,33 @@ const Seeun = () => {
 
         animate();
 
-        window.addEventListener('click', () => {
-            // vizMusic();
-            if(audio.paused) {
-                for (let i = count; i < count * 2; i++) {
-                    particlesGeometry.attributes.position.array[i] = (Math.random() - 0.5) * 10;
-                }
-                context.resume();
-                audio.play();    
+        let drag = false;
+        document.addEventListener('mousedown', () => drag = false);
+        document.addEventListener('mousemove', () => drag = true);
+        document.addEventListener('mouseup', () => {
+            if (drag) {
+                return;
             } else {
-                audio.pause();
-            }
-        })
+                if(audio.paused) {
+                    for (let i = count; i < count * 2; i++) {
+                        particlesGeometry.attributes.position.array[i] = (Math.random() - 0.5) * 10;
+                    }
+                    context.resume();
+                    audio.play();    
+                } else {
+                    audio.pause();
+                    camera.position.x = 0;
+                    camera.position.y = 9;
+                    camera.position.z = 0;
 
-        window.addEventListener('resize', () => {
+                    camera.rotation.x = -1.563966;
+                    camera.rotation.y = 0;
+                    camera.rotation.z = 0;
+                }
+            } 
+        });
+
+        document.addEventListener('resize', () => {
             renderer.setSize( window.innerWidth, window.innerHeight );
         })
 
