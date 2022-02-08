@@ -15,7 +15,7 @@ export default function makeBuilding() {
     // wall
     const wallThree = {
         'size': [0.1, 10, 10], 
-        'position': {x: 5, y:0, z: 0}, 
+        'position': {x: 5, y:5, z: 0}, 
         'rotation': {x: 0, y:0, z: 0},
         'material': {
             metalness: 0.3,
@@ -25,7 +25,7 @@ export default function makeBuilding() {
 
     const wallOpositeThree = {
         'size': [0.1, 10, 10], 
-        'position': {x: -5, y:0, z: 0}, 
+        'position': {x: -5, y:5, z: 0}, 
         'rotation': {x: 0, y:0, z: 0},
         'material': {
             metalness: 0.3,
@@ -35,7 +35,7 @@ export default function makeBuilding() {
 
     const wallVerticalThree = {
         'size': [0.1, 10, 10], 
-        'position': {x: 0, y:0, z: 5}, 
+        'position': {x: 0, y:5, z: 5}, 
         'rotation': {x: 0, y:Math.PI / 2, z: 0},
         'material': {
             metalness: 0.3,
@@ -45,7 +45,7 @@ export default function makeBuilding() {
 
     const wallVerticalOpositeThree = {
         'size': [0.1, 10, 10], 
-        'position': {x: 0, y:0, z: -5}, 
+        'position': {x: 0, y:5, z: -5}, 
         'rotation': {x: 0, y:Math.PI / 2, z: 0},
         'material': {
             metalness: 0.3,
@@ -62,7 +62,7 @@ export default function makeBuilding() {
     // ceil
     const ceilThree = {
         'size': [10, 0.1, 10],
-        'position': {x: 0, y: 5, z: 0},
+        'position': {x: 0, y: 10, z: 0},
         'rotation': {x: 0, y:Math.PI / 2, z: 0},
     }
 
@@ -71,7 +71,7 @@ export default function makeBuilding() {
     // wall
     const wallCannon = {
         'body' : {
-            mass: 0,
+            mass: 1,
             material: defaultMaterial
         },
     }

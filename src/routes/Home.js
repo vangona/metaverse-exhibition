@@ -8,11 +8,11 @@ import * as dat from "dat.gui";
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import makeBuilding from '../components/building/makeBuilding';
+import makeCamera from '../components/camera/makeCamera';
 
 const Container = styled.div``;
 
 const Home = () => {
-    const [controlState, setControlState] = useState(true);
     const mount = useRef();
 
     function init() {
@@ -41,7 +41,7 @@ const Home = () => {
         camera.position.y = 0.5;
         camera.position.z = 3;
 
-        const controls = new OrbitControls( camera, renderer.domElement );
+        const controls = new PointerLockControls( camera, renderer.domElement );
 
         const axesHelper = new THREE.AxesHelper( 5 );
         scene.add( axesHelper );
@@ -91,7 +91,38 @@ const Home = () => {
             }
         }
 
+        const cameraPosition = makeCamera();
+
+        scene.add(cameraPosition.mesh);
+        world.addBody(cameraPosition.body);
+
         // addEventListner
+        let forwardState = false;
+        let leftState = false;
+        let backwardState = false;
+        let rightState = false;
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'w') {
+                forwardState = true; 
+            }
+            if (e.key === 'a') {
+                leftState = true;
+            }
+            if (e.key === 's') {
+                backwardState = true;
+            }
+            if (e.key === 'd') {
+                rightState = true;
+            }
+        })
+
+        window.addEventListener('keyup', () => {
+            forwardState = false; 
+            leftState = false;        
+            backwardState = false;
+            rightState = false;
+        })
+
         window.addEventListener('click', () => {
             controls.lock();
         })
@@ -169,8 +200,27 @@ const Home = () => {
 
             world.step(1 / 60, delataTime, 3);
 
+            camera.position.copy(cameraPosition.mesh.position);
+
             for (const object of objToUpdate) {
                 object.mesh.position.copy(object.body.position)
+            }
+
+            // move
+            if (forwardState) {
+                cameraPosition.mesh.position.z -= 0.01;
+            }
+
+            if (leftState) {
+                cameraPosition.mesh.position.x -= 0.01;
+            }
+
+            if (backwardState) {
+                cameraPosition.mesh.position.z += 0.01;
+            }
+
+            if (rightState) {
+                cameraPosition.mesh.position.x += 0.01;
             }
         }
 
@@ -190,7 +240,7 @@ const Home = () => {
     }
 
     useEffect(() => {
-           init();
+        init();
     }, [])
 
     return (

@@ -290,8 +290,8 @@ const Seeun = () => {
                     for (let i = count; i < count * 2; i++) {
                         particlesGeometry.attributes.position.array[i] = (Math.random() - 0.5) * 10;
                     }
-                    context.resume();
                     audio.play();    
+                    context.resume();
                 } else {
                     audio.pause();
                     camera.position.x = 0;
