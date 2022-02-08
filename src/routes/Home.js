@@ -9,6 +9,7 @@ import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockCont
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import makeBuilding from '../components/building/makeBuilding';
 import makeCamera from '../components/camera/makeCamera';
+import { Raycaster } from 'three';
 
 const Container = styled.div``;
 
@@ -42,6 +43,11 @@ const Home = () => {
         camera.position.z = 3;
 
         const controls = new PointerLockControls( camera, renderer.domElement );
+
+        const raycaster = new Raycaster();
+        const mouse = new THREE.Vector2();
+        mouse.x = mouse.y = -1;
+        raycaster.setFromCamera(mouse, camera);
 
         const axesHelper = new THREE.AxesHelper( 5 );
         scene.add( axesHelper );
@@ -96,40 +102,52 @@ const Home = () => {
         scene.add(cameraPosition.mesh);
         world.addBody(cameraPosition.body);
 
-        // addEventListner
-        let forwardState = false;
-        let leftState = false;
-        let backwardState = false;
-        let rightState = false;
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'w') {
-                forwardState = true; 
-            }
-            if (e.key === 'a') {
-                leftState = true;
-            }
-            if (e.key === 's') {
-                backwardState = true;
-            }
-            if (e.key === 'd') {
-                rightState = true;
-            }
-        })
+            // addEventListner
+            let forwardState = false;
+            let leftState = false;
+            let backwardState = false;
+            let rightState = false;
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'w') {
+                    forwardState = true; 
+                }
+                if (e.key === 'a') {
+                    leftState = true;
+                }
+                if (e.key === 's') {
+                    backwardState = true;
+                }
+                if (e.key === 'd') {
+                    rightState = true;
+                }
+            })
 
-        window.addEventListener('keyup', () => {
-            forwardState = false; 
-            leftState = false;        
-            backwardState = false;
-            rightState = false;
-        })
+            window.addEventListener('keyup', (e) => {
+                if (e.key === 'w') {
+                    forwardState = false; 
+                }
+                if (e.key === 'a') {
+                    leftState = false;
+                }
+                if (e.key === 's') {
+                    backwardState = false;
+                }
+                if (e.key === 'd') {
+                    rightState = false;
+                }
+            })
 
-        window.addEventListener('click', () => {
-            controls.lock();
-        })
+            window.addEventListener('mousemove', () => {
+                cameraPosition.mesh.rotation.copy(raycaster.camera.rotation);
+            })
 
-        window.addEventListener('resize', () => {
-            renderer.setSize( window.innerWidth, window.innerHeight );
-        })
+            window.addEventListener('click', () => {
+                controls.lock();
+            })
+
+            window.addEventListener('resize', () => {
+                renderer.setSize( window.innerWidth, window.innerHeight );
+            })
 
         // functions
         const objToUpdate = [];
@@ -206,21 +224,29 @@ const Home = () => {
                 object.mesh.position.copy(object.body.position)
             }
 
+            let speed = 0.01;
+            if (speed < 0.1) {
+                speed += 0.01;
+            }
             // move
             if (forwardState) {
-                cameraPosition.mesh.position.z -= 0.01;
+                cameraPosition.mesh.position.x -= speed * Math.cos(cameraPosition.mesh.rotation.x);
+                cameraPosition.mesh.position.z -= speed * Math.cos(cameraPosition.mesh.rotation.z);
             }
 
             if (leftState) {
-                cameraPosition.mesh.position.x -= 0.01;
+                cameraPosition.mesh.position.x -= speed * Math.cos(cameraPosition.mesh.rotation.x);
+                cameraPosition.mesh.position.z -= speed * Math.cos(cameraPosition.mesh.rotation.z);
             }
 
             if (backwardState) {
-                cameraPosition.mesh.position.z += 0.01;
+                cameraPosition.mesh.position.x += speed * Math.cos(cameraPosition.mesh.rotation.x);
+                cameraPosition.mesh.position.z += speed * Math.cos(cameraPosition.mesh.rotation.z);
             }
 
             if (rightState) {
-                cameraPosition.mesh.position.x += 0.01;
+                cameraPosition.mesh.position.x += speed * Math.cos(cameraPosition.mesh.rotation.x);
+                cameraPosition.mesh.position.z += speed * Math.cos(cameraPosition.mesh.rotation.z);
             }
         }
 
