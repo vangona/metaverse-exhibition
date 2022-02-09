@@ -49,7 +49,8 @@ const Home = () => {
         mouse.x = mouse.y = -1;
         raycaster.setFromCamera(mouse, camera);
 
-        const axesHelper = new THREE.AxesHelper( 5 );
+        const axesHelper = new THREE.AxesHelper(5);
+        axesHelper.position.y = 2;
         scene.add( axesHelper );
 
         // cannon world setting
@@ -230,23 +231,24 @@ const Home = () => {
             }
             // move
             if (forwardState) {
-                cameraPosition.mesh.position.x -= speed * Math.cos(cameraPosition.mesh.rotation.x);
+                console.log(speed * Math.sin(cameraPosition.mesh.rotation.x), speed * Math.cos(cameraPosition.mesh.rotation.z))
+                cameraPosition.mesh.position.x += speed * Math.sin(cameraPosition.mesh.rotation.x);
                 cameraPosition.mesh.position.z -= speed * Math.cos(cameraPosition.mesh.rotation.z);
             }
 
             if (leftState) {
                 cameraPosition.mesh.position.x -= speed * Math.cos(cameraPosition.mesh.rotation.x);
-                cameraPosition.mesh.position.z -= speed * Math.cos(cameraPosition.mesh.rotation.z);
+                cameraPosition.mesh.position.z += speed * Math.sin(cameraPosition.mesh.rotation.z);
             }
 
             if (backwardState) {
-                cameraPosition.mesh.position.x += speed * Math.cos(cameraPosition.mesh.rotation.x);
+                cameraPosition.mesh.position.x -= speed * Math.sin(cameraPosition.mesh.rotation.x);
                 cameraPosition.mesh.position.z += speed * Math.cos(cameraPosition.mesh.rotation.z);
             }
 
             if (rightState) {
                 cameraPosition.mesh.position.x += speed * Math.cos(cameraPosition.mesh.rotation.x);
-                cameraPosition.mesh.position.z += speed * Math.cos(cameraPosition.mesh.rotation.z);
+                cameraPosition.mesh.position.z -= speed * Math.sin(cameraPosition.mesh.rotation.z);
             }
         }
 
