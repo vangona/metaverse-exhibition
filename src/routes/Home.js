@@ -231,7 +231,6 @@ const Home = () => {
             }
             // move
             if (forwardState) {
-                console.log(cameraPosition.mesh.rotation.x * 180 / Math.PI, cameraPosition.mesh.rotation.z * 180 / Math.PI)
                 cameraPosition.body.position.x += speed * Math.sin(cameraPosition.mesh.rotation.x);
                 cameraPosition.body.position.z -= speed * Math.cos(cameraPosition.mesh.rotation.z);
             }

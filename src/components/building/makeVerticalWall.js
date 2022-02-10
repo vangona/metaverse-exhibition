@@ -32,7 +32,7 @@ export default function makeVerticalWall(
     });
 
     wallBody.addShape(wallShape);
-    wallBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI / 2);
+    wallBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, -1, 0), Math.PI / 2);
     wallBody.position.copy(threeObj.position);
 
     const output = {

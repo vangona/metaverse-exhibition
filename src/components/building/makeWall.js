@@ -31,7 +31,6 @@ export default function makeWall(
     });
 
     wallBody.addShape(wallShape);
-    wallBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, threeObj.rotation.y ? -1 : 0, 0), Math.PI / 2);
     wallBody.position.copy(threeObj.position);
     wallMesh.position.copy(wallBody.position);
 
