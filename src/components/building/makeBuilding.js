@@ -71,7 +71,7 @@ export default function makeBuilding() {
     // wall
     const wallCannon = {
         'body' : {
-            mass: 1,
+            mass: 0,
             material: defaultMaterial
         },
     }
@@ -91,22 +91,6 @@ export default function makeBuilding() {
             material: defaultMaterial
         },
     }
-
-    // add keyboard controller
-    const velocity = 0.1;
-    const keyPress = (e) => {
-        if (e.keyCode === 119) {
-            wall.body.position.z -= velocity;
-        } else if (e.keyCode === 115) {
-            wall.body.position.z += velocity;
-        } else if (e.keyCode === 97) {
-            wall.body.position.x -= velocity;
-        } else if (e.keyCode === 100) {
-            wall.body.position.x += velocity;
-        }
-    }
-
-    window.addEventListener('keypress', keyPress);
 
     // make buildings
 

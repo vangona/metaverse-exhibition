@@ -88,10 +88,14 @@ const Home = () => {
 
         // build buildings
         const buildings = makeBuilding();
+        const objToUpdate = [];
 
         for (const building of buildings) {
             if (building.mesh) {
                 scene.add(building.mesh);
+                if (building.body) {
+                    objToUpdate.push(building);
+                }
             } 
             if (building.body) {
                 world.addBody(building.body);
@@ -102,6 +106,12 @@ const Home = () => {
 
         scene.add(cameraPosition.mesh);
         world.addBody(cameraPosition.body);
+        cameraPosition.body.addEventListener('collide', () => {
+            forwardState = false;
+            leftState = false;
+            backwardState = false;
+            rightState = false;
+        })
 
             // addEventListner
             let forwardState = false;
@@ -151,7 +161,6 @@ const Home = () => {
             })
 
         // functions
-        const objToUpdate = [];
         const createSphere = (radius, position, color) => {
             // Three.js mesh
             const mesh = new THREE.Mesh(
@@ -171,18 +180,11 @@ const Home = () => {
 
             const body = new CANNON.Body({
                 mass: 1,
-                position: new CANNON.Vec3(0, 3, 0),
+                position: new CANNON.Vec3(position.x, position.y, position.z),
                 shape,
                 material: defaultMaterial,
             });
 
-            body.applyLocalForce(
-                new CANNON.Vec3(
-                    Math.random()*100 + -50,
-                    0, 
-                    Math.random()*100 + -50,
-                ), 
-                new CANNON.Vec3(0, 0, 0))
             body.position.copy(position);
             world.addBody(body);
 
@@ -219,8 +221,6 @@ const Home = () => {
 
             world.step(1 / 60, delataTime, 3);
 
-            camera.position.copy(cameraPosition.mesh.position);
-
             for (const object of objToUpdate) {
                 object.mesh.position.copy(object.body.position)
             }
@@ -231,25 +231,28 @@ const Home = () => {
             }
             // move
             if (forwardState) {
-                console.log(speed * Math.sin(cameraPosition.mesh.rotation.x), speed * Math.cos(cameraPosition.mesh.rotation.z))
-                cameraPosition.mesh.position.x += speed * Math.sin(cameraPosition.mesh.rotation.x);
-                cameraPosition.mesh.position.z -= speed * Math.cos(cameraPosition.mesh.rotation.z);
+                console.log(cameraPosition.mesh.rotation.x * 180 / Math.PI, cameraPosition.mesh.rotation.z * 180 / Math.PI)
+                cameraPosition.body.position.x += speed * Math.sin(cameraPosition.mesh.rotation.x);
+                cameraPosition.body.position.z -= speed * Math.cos(cameraPosition.mesh.rotation.z);
             }
 
             if (leftState) {
-                cameraPosition.mesh.position.x -= speed * Math.cos(cameraPosition.mesh.rotation.x);
-                cameraPosition.mesh.position.z += speed * Math.sin(cameraPosition.mesh.rotation.z);
+                cameraPosition.body.position.x -= speed * Math.cos(cameraPosition.mesh.rotation.x);
+                cameraPosition.body.position.z += speed * Math.sin(cameraPosition.mesh.rotation.z);
             }
 
             if (backwardState) {
-                cameraPosition.mesh.position.x -= speed * Math.sin(cameraPosition.mesh.rotation.x);
-                cameraPosition.mesh.position.z += speed * Math.cos(cameraPosition.mesh.rotation.z);
+                cameraPosition.body.position.x -= speed * Math.sin(cameraPosition.mesh.rotation.x);
+                cameraPosition.body.position.z += speed * Math.cos(cameraPosition.mesh.rotation.z);
             }
 
             if (rightState) {
-                cameraPosition.mesh.position.x += speed * Math.cos(cameraPosition.mesh.rotation.x);
-                cameraPosition.mesh.position.z -= speed * Math.sin(cameraPosition.mesh.rotation.z);
+                cameraPosition.body.position.x += speed * Math.cos(cameraPosition.mesh.rotation.x);
+                cameraPosition.body.position.z -= speed * Math.sin(cameraPosition.mesh.rotation.z);
             }
+
+            cameraPosition.mesh.position.copy(cameraPosition.body.position);
+            camera.position.copy(cameraPosition.body.position);
         }
 
         const animate = function() {

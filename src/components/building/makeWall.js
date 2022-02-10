@@ -22,7 +22,6 @@ export default function makeWall(
     wallMesh.rotation.y = threeObj.rotation.y;
     wallMesh.rotation.z = threeObj.rotation.z;
 
-    wallMesh.position.copy(threeObj.position);
     wallMesh.receiveShadow = true;
 
     // Cannon
@@ -32,7 +31,9 @@ export default function makeWall(
     });
 
     wallBody.addShape(wallShape);
+    wallBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, threeObj.rotation.y ? -1 : 0, 0), Math.PI / 2);
     wallBody.position.copy(threeObj.position);
+    wallMesh.position.copy(wallBody.position);
 
     const output = {
         'mesh' : wallMesh,

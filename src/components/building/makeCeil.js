@@ -22,17 +22,18 @@ export default function makeCeil(
 
     ceilMesh.rotation.y = Math.PI / 2;
     ceilMesh.receiveShadow = true;
-    ceilMesh.position.copy(threeObj.position);
 
     // Cannon
     const ceilShape = new CANNON.Plane(new CANNON.Vec3(threeObj.size[0], threeObj.size[1], threeObj.size[2]));
     const ceilBody = new CANNON.Body(cannonObj.body);
     
     ceilBody.addShape( ceilShape );
-    ceilBody.quaternion.setFromAxisAngle(new CANNON.Vec3(-1, 0, 0), Math.PI / 2);
+    ceilBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), Math.PI / 2);
 
     ceilBody.material = cannonObj.body.material;
     ceilBody.position.copy(threeObj.position);
+    ceilMesh.position.copy(ceilBody.position);
+
 
     const output = {
         'mesh': ceilMesh,
