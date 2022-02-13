@@ -106,12 +106,6 @@ const Home = () => {
 
         scene.add(cameraPosition.mesh);
         world.addBody(cameraPosition.body);
-        cameraPosition.body.addEventListener('collide', () => {
-            forwardState = false;
-            leftState = false;
-            backwardState = false;
-            rightState = false;
-        })
 
             // addEventListner
             let forwardState = false;
@@ -149,6 +143,8 @@ const Home = () => {
             })
 
             window.addEventListener('mousemove', () => {
+                console.log(raycaster.camera.rotation.x * 180 / Math.PI);
+                // z축은 ok, x축에 무언가 문제가 있음.
                 cameraPosition.mesh.rotation.copy(raycaster.camera.rotation);
             })
 
