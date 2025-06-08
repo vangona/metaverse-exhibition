@@ -1,14 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 
 import * as THREE from 'three';
 import * as CANNON from "cannon-es";
-import { GUI } from "lil-gui";
 
-import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import makeBuilding from '../components/building/makeBuilding';
-import makeSeeunBuilding from '../components/seeun/makeSeeunBuilding';
 
 import seeunMusic from '../music/seeun.mp3';
 import fog from "../textures/particles/1.png";
@@ -17,13 +13,12 @@ const Container = styled.div`
     position: relative;
 `;
 
-const Label = styled.label`
-    position: absolute;
-`;
-const Input = styled.input``;
 
 const Seeun = () => {
     const mount = useRef();
+    const audioContextRef = useRef(null);
+    const analyserRef = useRef(null);
+    const mediaSourceRef = useRef(null);
 
     function init() {
         const scene = new THREE.Scene();
@@ -49,17 +44,43 @@ const Seeun = () => {
 
         const audio = document.getElementById('seeunAudio');
 
-        const context = new AudioContext();
-        const analyser = context.createAnalyser();
+        // Check if audio element already has a source node using a data attribute
+        if (audio.hasAttribute('data-source-connected')) {
+            // Use existing context if available
+            if (!audioContextRef.current && window._globalAudioContext) {
+                audioContextRef.current = window._globalAudioContext;
+                analyserRef.current = window._globalAnalyser;
+            }
+            if (!audioContextRef.current) return () => {}; // Skip if no context available
+        } else {
+            // Initialize audio context and analyser only once
+            if (!audioContextRef.current) {
+                audioContextRef.current = new AudioContext();
+                analyserRef.current = audioContextRef.current.createAnalyser();
+                analyserRef.current.connect(audioContextRef.current.destination);
+                analyserRef.current.fftSize = 2048;
+                
+                // Create media source only once and mark as connected
+                try {
+                    mediaSourceRef.current = audioContextRef.current.createMediaElementSource(audio);
+                    mediaSourceRef.current.connect(analyserRef.current);
+                    audio.setAttribute('data-source-connected', 'true');
+                    
+                    // Store globally to reuse
+                    window._globalAudioContext = audioContextRef.current;
+                    window._globalAnalyser = analyserRef.current;
+                } catch (error) {
+                    console.warn('Audio source already connected:', error);
+                    return () => {};
+                }
+            }
+        }
 
-        analyser.connect(context.destination);
-        analyser.fftSize = 2048;
+        const context = audioContextRef.current;
+        const analyser = analyserRef.current;
         let bufferLength = analyser.frequencyBinCount;
         let dataArray = new Uint8Array(bufferLength);
         analyser.getByteTimeDomainData(dataArray);
-
-        const src = context.createMediaElementSource(audio);
-        src.connect(analyser);
 
         // cannon world setting
         const world = new CANNON.World();
@@ -333,10 +354,31 @@ const Seeun = () => {
         function max(arr){
             return arr.reduce(function(a, b){ return Math.max(a, b); })
         }
+
+        // Return cleanup function
+        return () => {
+            // Don't close the audio context in development due to Strict Mode
+            // The context will be reused across re-renders
+            if (process.env.NODE_ENV === 'production') {
+                if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+                    audioContextRef.current.close();
+                    const audio = document.getElementById('seeunAudio');
+                    if (audio) {
+                        audio.removeAttribute('data-source-connected');
+                    }
+                }
+                audioContextRef.current = null;
+                analyserRef.current = null;
+                mediaSourceRef.current = null;
+                window._globalAudioContext = null;
+                window._globalAnalyser = null;
+            }
+        };
     }
 
     useEffect(() => {
-        init();
+        const cleanup = init();
+        return cleanup;
     }, [])
 
     return (

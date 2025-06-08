@@ -142,7 +142,7 @@ export default function makeSeeunBuilding() {
     // make ceil
     const ceil = makeCeil(ceilThree, ceilCannon);
 
-    buildings.push(wall, opositeWall, verticalWall, vertialOpositeWall, floor, ceil);
+    buildings.push(wall, opositeWall, verticalWall, vertialOpositeWall, floor, ceil, bulb);
 
     return buildings;
 }

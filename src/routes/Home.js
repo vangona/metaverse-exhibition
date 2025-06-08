@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import styled from "styled-components";
 
 import * as THREE from "three";
@@ -6,7 +6,6 @@ import * as CANNON from "cannon-es";
 import { GUI } from "lil-gui";
 
 import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import makeBuilding from "../components/building/makeBuilding";
 import makeCamera from "../components/camera/makeCamera";
 import { Raycaster } from "three";
@@ -266,10 +265,16 @@ const Home = () => {
     };
 
     animate();
+
+    // Return cleanup function
+    return () => {
+      // Cleanup can be added here if needed
+    };
   }
 
   useEffect(() => {
-    init();
+    const cleanup = init();
+    return cleanup;
   }, []);
 
   return <Container ref={mount}></Container>;
