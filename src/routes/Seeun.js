@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 
 import * as THREE from 'three';
@@ -13,6 +13,145 @@ import fog from "../textures/particles/1.png";
 
 const Container = styled.div`
     position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+`;
+
+const ControlOverlay = styled.div`
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 100;
+    opacity: ${props => props.visible ? 1 : 0};
+    transition: opacity 0.3s ease;
+`;
+
+const InfoPanel = styled.div`
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    font-family: 'Arial', sans-serif;
+    max-width: 400px;
+    word-break: keep-all;
+    backdrop-filter: blur(10px);
+`;
+
+const Title = styled.h2`
+    margin: 0 0 10px 0;
+    font-size: 24px;
+    color: #6667AB;
+`;
+
+const Description = styled.p`
+    margin: 0 0 15px 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #ccc;
+`;
+
+const PlayControls = styled.div`
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 15px 25px;
+    border-radius: 25px;
+    backdrop-filter: blur(10px);
+`;
+
+const PlayButton = styled.button`
+    background: #6667AB;
+    border: none;
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    transition: background 0.3s ease;
+    pointer-events: auto;
+    
+    &:hover {
+        background: #7778BC;
+    }
+`;
+
+const StatusText = styled.span`
+    color: white;
+    font-size: 14px;
+    margin-left: 10px;
+`;
+
+const ControlGuide = styled.div`
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    font-family: 'Arial', sans-serif;
+    backdrop-filter: blur(10px);
+    max-width: 280px;
+`;
+
+const GuideTitle = styled.h3`
+    margin: 0 0 15px 0;
+    font-size: 18px;
+    color: #6667AB;
+`;
+
+const GuideItem = styled.div`
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 13px;
+    
+    &:last-child {
+        margin-bottom: 0;
+    }
+`;
+
+const GuideIcon = styled.span`
+    background: rgba(102, 103, 171, 0.3);
+    color: #6667AB;
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: bold;
+    margin-right: 12px;
+    min-width: 60px;
+    text-align: center;
+    border: 1px solid rgba(102, 103, 171, 0.5);
+`;
+
+const GuideText = styled.span`
+    color: #ccc;
+    line-height: 1.4;
+`;
+
+const HideHint = styled.div`
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    text-align: right;
 `;
 
 
@@ -21,6 +160,41 @@ const Seeun = () => {
     const audioContextRef = useRef(null);
     const analyserRef = useRef(null);
     const mediaSourceRef = useRef(null);
+    const [showControls, setShowControls] = useState(true);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const hideControlsTimeoutRef = useRef(null);
+
+    // Mouse movement handler to show/hide controls
+    const handleMouseMove = () => {
+        setShowControls(true);
+        
+        // Clear existing timeout
+        if (hideControlsTimeoutRef.current) {
+            clearTimeout(hideControlsTimeoutRef.current);
+        }
+        
+        // Set new timeout to hide controls after 3 seconds
+        hideControlsTimeoutRef.current = setTimeout(() => {
+            setShowControls(false);
+        }, 3000);
+    };
+
+    // Audio control functions
+    const togglePlayPause = () => {
+        const audio = document.getElementById('seeunAudio');
+        if (audio) {
+            if (isPlaying) {
+                audio.pause();
+                setIsPlaying(false);
+            } else {
+                audio.play();
+                setIsPlaying(true);
+                if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+                    audioContextRef.current.resume();
+                }
+            }
+        }
+    };
 
     function init() {
         const scene = new THREE.Scene();
@@ -44,6 +218,11 @@ const Seeun = () => {
         const controls = new OrbitControls( camera, renderer.domElement );
         controls.enabled = true;
         controls.target.set(0, 2.5, 0); // Look at sphereVisualizer position
+        controls.enableDamping = true; // 부드러운 움직임
+        controls.dampingFactor = 0.05;
+        controls.enableZoom = true;
+        controls.enableRotate = true;
+        controls.enablePan = true;
         controls.update();
 
         const audio = document.getElementById('seeunAudio');
@@ -336,37 +515,28 @@ const Seeun = () => {
         const animate = function() {
             requestAnimationFrame( animate );
             tick();
+            
+            // Update controls for smooth damping
+            controls.update();
 
             renderer.render( scene, camera );
         }
 
         animate();
 
-        let drag = false;
-        document.addEventListener('mousedown', () => drag = false);
-        document.addEventListener('mousemove', () => drag = true);
-        document.addEventListener('mouseup', () => {
-            if (drag) {
-                return;
-            } else {
-                if(audio.paused) {
-                    for (let i = count; i < count * 2; i++) {
-                        particlesGeometry.attributes.position.array[i] = (Math.random() - 0.5) * 10;
-                    }
-                    audio.play();    
-                    context.resume();
-                } else {
-                    audio.pause();
-                    camera.position.x = 0;
-                    camera.position.y = 9;
-                    camera.position.z = 0;
-
-                    camera.rotation.x = -1.563966;
-                    camera.rotation.y = 0;
-                    camera.rotation.z = 0;
-                }
-            } 
+        // Mouse event handlers
+        document.addEventListener('mousemove', handleMouseMove);
+        
+        // Double click to reset camera position
+        renderer.domElement.addEventListener('dblclick', () => {
+            camera.position.set(3, 7, 3);
+            controls.target.set(0, 2.5, 0);
+            controls.update();
         });
+        
+        // Audio state change listeners
+        audio.addEventListener('play', () => setIsPlaying(true));
+        audio.addEventListener('pause', () => setIsPlaying(false));
 
         document.addEventListener('resize', () => {
             renderer.setSize( window.innerWidth, window.innerHeight );
@@ -384,12 +554,27 @@ const Seeun = () => {
 
         // Return cleanup function
         return () => {
+            // Remove event listeners
+            document.removeEventListener('mousemove', handleMouseMove);
+            if (renderer && renderer.domElement) {
+                renderer.domElement.removeEventListener('dblclick', () => {});
+            }
+            const audio = document.getElementById('seeunAudio');
+            if (audio) {
+                audio.removeEventListener('play', () => setIsPlaying(true));
+                audio.removeEventListener('pause', () => setIsPlaying(false));
+            }
+            
+            // Clear timeout
+            if (hideControlsTimeoutRef.current) {
+                clearTimeout(hideControlsTimeoutRef.current);
+            }
+            
             // Don't close the audio context in development due to Strict Mode
             // The context will be reused across re-renders
             if (process.env.NODE_ENV === 'production') {
                 if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
                     audioContextRef.current.close();
-                    const audio = document.getElementById('seeunAudio');
                     if (audio) {
                         audio.removeAttribute('data-source-connected');
                     }
@@ -409,8 +594,54 @@ const Seeun = () => {
     }, [])
 
     return (
-        <Container ref={mount}>
+        <Container ref={mount} onMouseMove={handleMouseMove}>
             <audio id='seeunAudio' src={seeunMusic} />
+            
+            <ControlOverlay visible={showControls}>
+                <InfoPanel>
+                    <Title>Solace Piano Visualization</Title>
+                    <Description>
+                        이 시각화는 Liszt - Solace 피아노 연주를 바탕으로, 음의 크기와 높낮이를 기반으로 입자들이 움직이는 것을 시각화하여 연주에 더 몰입할 수 있게 합니다.
+                    </Description>
+                    <Description>
+                        중앙의 구형 시각화기와 주변 파티클들이 음악에 반응하여 실시간으로 변화합니다.
+                    </Description>
+                </InfoPanel>
+                
+                <ControlGuide>
+                    <GuideTitle>시점 조작 가이드</GuideTitle>
+                    <GuideItem>
+                        <GuideIcon>드래그</GuideIcon>
+                        <GuideText>마우스 좌클릭 + 드래그로 시점 회전</GuideText>
+                    </GuideItem>
+                    <GuideItem>
+                        <GuideIcon>휠</GuideIcon>
+                        <GuideText>마우스 휠로 줌인/줌아웃</GuideText>
+                    </GuideItem>
+                    <GuideItem>
+                        <GuideIcon>우클릭</GuideIcon>
+                        <GuideText>우클릭 + 드래그로 시점 이동</GuideText>
+                    </GuideItem>
+                    <GuideItem>
+                        <GuideIcon>더블클릭</GuideIcon>
+                        <GuideText>더블클릭으로 시점 초기화</GuideText>
+                    </GuideItem>
+                </ControlGuide>
+                
+                <PlayControls>
+                    <PlayButton onClick={togglePlayPause}>
+                        {isPlaying ? '⏸' : '▶'}
+                    </PlayButton>
+                    <StatusText>
+                        {isPlaying ? '재생 중...' : '클릭하여 재생'}
+                    </StatusText>
+                </PlayControls>
+                
+                <HideHint>
+                    마우스를 정지하면 3초 후 컨트롤이 숨겨집니다<br/>
+                    마우스를 움직이면 다시 나타납니다
+                </HideHint>
+            </ControlOverlay>
         </Container>
     );
 };
