@@ -1,12 +1,14 @@
 # Metaverse Exhibition - Solace Piano Visualization
 
+![스크린샷 2025-06-09 오전 5 07 58](https://github.com/user-attachments/assets/d605c435-ab79-4f83-b44f-734f497c04f1)
+
 [실시간 오디오 시각화를 통한 몰입형 피아노 연주 전시회](https://vercel.com/vangonas-projects/metaverse-exhibition)
 
 ## 🎹 프로젝트 소개
 
 **Metaverse Exhibition**은 "Liszt의 Solace" 피아노 연주를 3D 공간에서 시각화하는 웹 애플리케이션입니다. 음악의 크기와 높낮이에 따라 실시간으로 반응하는 도형과 입자를 통해 사용자에게 몰입감 있는 청각-시각적 경험을 제공합니다.
 
-![스크린샷 2025-06-09 오전 5 07 58](https://github.com/user-attachments/assets/d605c435-ab79-4f83-b44f-734f497c04f1)
+https://github.com/user-attachments/assets/67e4544e-ce6c-40c5-b6b4-6d94fc71d66d
 
 ### ✨ 주요 특징
 
