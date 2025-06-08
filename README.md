@@ -1,6 +1,6 @@
 # Metaverse Exhibition - Solace Piano Visualization
 
-실시간 오디오 시각화를 통한 몰입형 피아노 연주 전시회
+[실시간 오디오 시각화를 통한 몰입형 피아노 연주 전시회](https://vercel.com/vangonas-projects/metaverse-exhibition)
 
 ## 🎹 프로젝트 소개
 
