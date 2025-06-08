@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 
 import * as THREE from 'three';
-import CANNON from "cannon";
-import * as dat from "dat.gui";
+import * as CANNON from "cannon-es";
+import { GUI } from "lil-gui";
 
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -71,7 +71,7 @@ const Seeun = () => {
         const textureLoader = new THREE.TextureLoader();
         const particleTexture = textureLoader.load(fog);
 
-        const sphereVisualizerGeometry = new THREE.SphereBufferGeometry(0.6, 24, 24);
+        const sphereVisualizerGeometry = new THREE.SphereGeometry(0.6, 24, 24);
 
         const sphereVisualizerMaterial = new THREE.PointsMaterial();
         sphereVisualizerMaterial.alphaMap = particleTexture;

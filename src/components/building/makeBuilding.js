@@ -1,4 +1,4 @@
-import CANNON from "cannon";
+import * as CANNON from "cannon-es";
 import makeBulb from "./makeBulb";
 import makeCeil from "./makeCeil";
 import makeFloor from "./makeFloor";

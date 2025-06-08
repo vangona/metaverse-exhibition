@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 
 import * as THREE from "three";
-import CANNON from "cannon";
-import * as dat from "dat.gui";
+import * as CANNON from "cannon-es";
+import { GUI } from "lil-gui";
 
 import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
@@ -194,7 +194,7 @@ const Home = () => {
 
     // Dat.GUI
 
-    const gui = new dat.GUI();
+    const gui = new GUI();
     const debugObject = {};
 
     debugObject.createSphere = () => {

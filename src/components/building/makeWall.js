@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import CANNON from "cannon";
+import * as CANNON from "cannon-es";
 
 export default function makeWall(
         threeObj={
@@ -25,7 +25,7 @@ export default function makeWall(
     wallMesh.receiveShadow = true;
 
     // Cannon
-    const wallShape = new CANNON.Box(new CANNON.Vec3(threeObj.size[0], threeObj.size[1], threeObj.size[2]));
+    const wallShape = new CANNON.Box(new CANNON.Vec3(threeObj.size[0]/2, threeObj.size[1]/2, threeObj.size[2]/2));
     const wallBody = new CANNON.Body({
         ...cannonObj.body,
     });

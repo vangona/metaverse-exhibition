@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import CANNON from "cannon";
+import * as CANNON from "cannon-es";
 
 export default function makeCeil(
         threeObj={
@@ -24,7 +24,7 @@ export default function makeCeil(
     ceilMesh.receiveShadow = true;
 
     // Cannon
-    const ceilShape = new CANNON.Plane(new CANNON.Vec3(threeObj.size[0], threeObj.size[1], threeObj.size[2]));
+    const ceilShape = new CANNON.Plane();
     const ceilBody = new CANNON.Body(cannonObj.body);
     
     ceilBody.addShape( ceilShape );

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import CANNON from "cannon";
+import * as CANNON from "cannon-es";
 
 export default function makeCamera() {
     const defaultMaterial = new CANNON.Material('default');
