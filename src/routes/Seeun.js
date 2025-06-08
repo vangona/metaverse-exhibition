@@ -4,6 +4,8 @@ import styled from 'styled-components';
 import * as THREE from 'three';
 import * as CANNON from "cannon-es";
 
+// Global audio context types (for TypeScript support)
+
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 import seeunMusic from '../music/seeun.mp3';
@@ -35,12 +37,14 @@ const Seeun = () => {
 
         light.position.y = 2.5;
 
-        camera.position.x = 0;
-        camera.position.y = 2.5;
-        camera.position.z = 0;
+        camera.position.x = 3;
+        camera.position.y = 7;
+        camera.position.z = 3;
 
         const controls = new OrbitControls( camera, renderer.domElement );
         controls.enabled = true;
+        controls.target.set(0, 2.5, 0); // Look at sphereVisualizer position
+        controls.update();
 
         const audio = document.getElementById('seeunAudio');
 
@@ -90,35 +94,76 @@ const Seeun = () => {
         // visualizers
 
         const textureLoader = new THREE.TextureLoader();
-        const particleTexture = textureLoader.load(fog);
+        
+        // Create geometries first
+        const particlesGeometry = new THREE.BufferGeometry();
+        
+        // Create simple test sphere with basic SphereGeometry converted to points
+        const tempSphereGeometry = new THREE.SphereGeometry(0.6, 32, 32);
+        const sphereVisualizerGeometry = new THREE.BufferGeometry();
+        
+        // Get positions from the sphere geometry
+        const spherePositions = tempSphereGeometry.attributes.position.array;
+        sphereVisualizerGeometry.setAttribute('position', new THREE.BufferAttribute(spherePositions, 3));
+        
+        // Create materials with placeholder texture
+        const sphereVisualizerMaterial = new THREE.PointsMaterial({
+            transparent: true,
+            alphaTest: 0.1,
+            size: 0.1,
+            sizeAttenuation: true,
+            color: new THREE.Color('#6667AB'),
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
 
-        const sphereVisualizerGeometry = new THREE.SphereGeometry(0.6, 24, 24);
-
-        const sphereVisualizerMaterial = new THREE.PointsMaterial();
-        sphereVisualizerMaterial.alphaMap = particleTexture;
-
-        sphereVisualizerMaterial.transparent = true;
-        sphereVisualizerMaterial.alphaTest = 0.1;
-        sphereVisualizerMaterial.size = 0.11;
-        sphereVisualizerMaterial.sizeAttenuation = true;
+        const particlesMaterial = new THREE.PointsMaterial({
+            vertexColors: true,
+            transparent: true,
+            alphaTest: 0.01,
+            size: 0.2,
+            sizeAttenuation: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+        
+        // Load texture with proper error handling
+        // eslint-disable-next-line no-unused-vars
+        const particleTexture = textureLoader.load(
+            fog,
+            function (texture) {
+                // onLoad callback
+                console.log('Texture loaded successfully');
+                texture.wrapS = THREE.RepeatWrapping;
+                texture.wrapT = THREE.RepeatWrapping;
+                texture.flipY = false;
+                
+                // Apply texture to materials
+                sphereVisualizerMaterial.map = texture;
+                sphereVisualizerMaterial.alphaMap = texture;
+                sphereVisualizerMaterial.needsUpdate = true;
+                
+                particlesMaterial.map = texture;
+                particlesMaterial.alphaMap = texture;
+                particlesMaterial.needsUpdate = true;
+            },
+            function (progress) {
+                // onProgress callback
+                console.log('Loading progress:', progress);
+            },
+            function (error) {
+                // onError callback
+                console.error('Error loading texture:', error);
+            }
+        );
 
         const sphereVisualizer = new THREE.Points(sphereVisualizerGeometry, sphereVisualizerMaterial);
 
-        sphereVisualizer.position.y = 2.5;
-        sphereVisualizerMaterial.color = new THREE.Color('#6667AB')
+        sphereVisualizer.position.set(0, 2.5, 0);
         
         scene.add(sphereVisualizer);
 
-        // Particles
-        const particlesGeometry = new THREE.BufferGeometry();
-        const particlesMaterial = new THREE.PointsMaterial();
-        particlesMaterial.vertexColors = true;
-        particlesMaterial.alphaMap = particleTexture;
-
-        particlesMaterial.alphaTest = 0.1;
-        particlesMaterial.size = 0.1;
-        particlesMaterial.sizeAttenuation = true;
-
+        // Particles setup
         const count = 250;
 
         const positions = new Float32Array(count * 3);
@@ -158,9 +203,7 @@ const Seeun = () => {
         let lowerSum = 0;
         let upperSum = 0;
 
-        camera.position.x = 0;
-        camera.position.y = 9;
-        camera.position.z = 0;
+        // Camera position already set above
 
         const tick = () => {
             const elapsedTime = clock.getElapsedTime();
@@ -261,7 +304,6 @@ const Seeun = () => {
 
                 particlesGeometry.attributes.color.needsUpdate = true;
 
-                const velocity = overallAvg / 2000;
                 
                 lowerSum += lowerAvgFr / 100;
                 upperSum += upperAvgFr / 100;
@@ -330,21 +372,6 @@ const Seeun = () => {
             renderer.setSize( window.innerWidth, window.innerHeight );
         })
 
-        function vizMusic() {
-            const listener = new THREE.AudioListener();
-            particles.add( listener );
-            const sound = new THREE.Audio( listener );
-    
-            const file = seeunMusic;
-
-            const audioLoader = new THREE.AudioLoader();
-            audioLoader.load( file, function (buffer) {
-                sound.setBuffer( buffer );
-                sound.setLoop( true );
-                sound.setVolume( 0.5 );
-                sound.play();
-            })
-        }
 
         function avg(arr){
             var total = arr.reduce(function(sum, b) { return sum + b; });
