@@ -16,7 +16,17 @@ const Container = styled.div`
     position: relative;
     width: 100vw;
     height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for modern browsers */
     overflow: hidden;
+    
+    @media (max-width: 768px) {
+        /* Ensure proper height on mobile */
+        min-height: 100vh;
+        min-height: 100dvh;
+        position: fixed;
+        top: 0;
+        left: 0;
+    }
 `;
 
 const ControlOverlay = styled.div`
@@ -89,9 +99,18 @@ const PlayControls = styled.div`
     backdrop-filter: blur(10px);
     
     @media (max-width: 768px) {
-        bottom: 30px;
+        bottom: max(30px, env(safe-area-inset-bottom, 20px));
         padding: 12px 20px;
         gap: 10px;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        max-width: calc(100vw - 40px);
+        box-sizing: border-box;
+    }
+    
+    @media (max-height: 600px) {
+        bottom: 20px;
     }
 `;
 
@@ -189,13 +208,18 @@ const HideHint = styled.div`
     text-align: right;
     
     @media (max-width: 768px) {
-        bottom: 100px;
+        bottom: max(120px, calc(env(safe-area-inset-bottom, 20px) + 100px));
         left: 20px;
         right: 20px;
         text-align: center;
         background: rgba(0, 0, 0, 0.5);
         padding: 10px;
         border-radius: 8px;
+        box-sizing: border-box;
+    }
+    
+    @media (max-height: 600px) {
+        bottom: 80px;
     }
 `;
 
