@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { Helmet } from 'react-helmet-async';
 import styled from "styled-components";
 
 import * as THREE from "three";
@@ -344,6 +345,13 @@ const Home = () => {
 
   return (
     <Container ref={mount}>
+      <Helmet>
+        <title>Metaverse Exhibition | 3D Virtual Space</title>
+        <meta name="description" content="3D 가상 전시 공간에서 피아노 시각화를 체험해보세요. Three.js와 물리 엔진을 활용한 몰입형 메타버스 전시회입니다." />
+        <meta property="og:title" content="Metaverse Exhibition - 3D Virtual Exhibition Space" />
+        <meta property="og:description" content="WASD 키보드 조작으로 탐험하는 3D 가상 전시 공간. 피아노 시각화와 인터랙티브 요소가 있는 메타버스 경험을 제공합니다." />
+        <meta name="keywords" content="metaverse, 3d exhibition, virtual space, three.js, cannon.js, 메타버스, 가상전시, 3d공간" />
+      </Helmet>
       {isMobile && (
         <MobileWarning>
           <h2>데스크톱 전용 콘텐츠</h2>

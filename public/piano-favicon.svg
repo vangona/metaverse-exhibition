@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Background -->
+  <rect width="64" height="64" fill="#f0f0f0" rx="8"/>
+  
+  <!-- White keys -->
+  <rect x="8" y="16" width="10" height="32" fill="#ffffff" stroke="#333" stroke-width="1"/>
+  <rect x="19" y="16" width="10" height="32" fill="#ffffff" stroke="#333" stroke-width="1"/>
+  <rect x="30" y="16" width="10" height="32" fill="#ffffff" stroke="#333" stroke-width="1"/>
+  <rect x="41" y="16" width="10" height="32" fill="#ffffff" stroke="#333" stroke-width="1"/>
+  <rect x="52" y="16" width="10" height="32" fill="#ffffff" stroke="#333" stroke-width="1"/>
+  
+  <!-- Black keys -->
+  <rect x="15" y="16" width="7" height="20" fill="#1a1a1a" rx="1"/>
+  <rect x="26" y="16" width="7" height="20" fill="#1a1a1a" rx="1"/>
+  <rect x="48" y="16" width="7" height="20" fill="#1a1a1a" rx="1"/>
+</svg>

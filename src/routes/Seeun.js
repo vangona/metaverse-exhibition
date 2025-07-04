@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import styled from 'styled-components';
 
 import * as THREE from 'three';
@@ -701,6 +702,14 @@ const Seeun = () => {
 
     return (
         <Container ref={mount} onMouseMove={handleMouseMove}>
+            <Helmet>
+                <title>Solace Piano Visualization | Metaverse Exhibition</title>
+                <meta name="description" content="리스트의 Solace 피아노 연주를 실시간 3D 시각화로 경험하세요. 음의 크기와 높낮이에 따라 반응하는 파티클 애니메이션과 함께 몰입감 있는 청각-시각적 경험을 제공합니다." />
+                <meta property="og:title" content="Solace Piano Visualization - 리스트 피아노 실시간 3D 시각화" />
+                <meta property="og:description" content="음악과 기술이 만나는 몰입형 경험. Three.js와 Web Audio API로 구현된 실시간 오디오 시각화를 통해 Solace 피아노 연주에 더 깊이 빠져보세요." />
+                <meta property="og:type" content="website" />
+                <meta name="keywords" content="solace, liszt, piano, visualization, three.js, web audio, 피아노 시각화, 리스트, 솔라체, 3d 음악, 실시간 오디오" />
+            </Helmet>
             <audio id='seeunAudio' src={seeunMusic} />
             
             <ControlOverlay visible={showControls}>
