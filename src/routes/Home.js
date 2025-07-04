@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 
 import * as THREE from "three";
@@ -10,10 +10,59 @@ import makeBuilding from "../components/building/makeBuilding";
 import makeCamera from "../components/camera/makeCamera";
 import { Raycaster } from "three";
 
-const Container = styled.div``;
+const Container = styled.div`
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+`;
+
+const MobileWarning = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 30px;
+  border-radius: 10px;
+  text-align: center;
+  max-width: 90%;
+  width: 400px;
+  font-family: Arial, sans-serif;
+  
+  h2 {
+    color: #6667AB;
+    margin-bottom: 20px;
+  }
+  
+  p {
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+  
+  a {
+    color: #6667AB;
+    text-decoration: none;
+    font-weight: bold;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+`;
 
 const Home = () => {
   const mount = useRef();
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768 || 'ontouchstart' in window);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   function init() {
     const scene = new THREE.Scene();
@@ -23,8 +72,12 @@ const Home = () => {
       0.1,
       1000
     );
-    const renderer = new THREE.WebGLRenderer();
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      powerPreference: 'high-performance'
+    });
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
     renderer.shadowMap.enabled = true;
 
@@ -266,9 +319,21 @@ const Home = () => {
 
     animate();
 
+    // Handle window resize
+    const handleResize = () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    };
+    window.addEventListener('resize', handleResize);
+
     // Return cleanup function
     return () => {
-      // Cleanup can be added here if needed
+      window.removeEventListener('resize', handleResize);
+      gui.destroy();
+      if (renderer && renderer.domElement && mount.current) {
+        mount.current.removeChild(renderer.domElement);
+      }
     };
   }
 
@@ -277,7 +342,23 @@ const Home = () => {
     return cleanup;
   }, []);
 
-  return <Container ref={mount}></Container>;
+  return (
+    <Container ref={mount}>
+      {isMobile && (
+        <MobileWarning>
+          <h2>데스크톱 전용 콘텐츠</h2>
+          <p>
+            이 전시 공간은 WASD 키보드 조작과 마우스 움직임이 필요하여
+            데스크톱 환경에서만 이용 가능합니다.
+          </p>
+          <p>
+            모바일에서는 <a href="/seeun">Solace 피아노 시각화</a>를
+            체험해보세요.
+          </p>
+        </MobileWarning>
+      )}
+    </Container>
+  );
 };
 
 export default Home;

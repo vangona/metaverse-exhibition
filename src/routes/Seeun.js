@@ -42,12 +42,24 @@ const InfoPanel = styled.div`
     max-width: 400px;
     word-break: keep-all;
     backdrop-filter: blur(10px);
+    
+    @media (max-width: 768px) {
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        max-width: none;
+        padding: 15px;
+    }
 `;
 
 const Title = styled.h2`
     margin: 0 0 10px 0;
     font-size: 24px;
     color: #6667AB;
+    
+    @media (max-width: 768px) {
+        font-size: 20px;
+    }
 `;
 
 const Description = styled.p`
@@ -55,6 +67,11 @@ const Description = styled.p`
     font-size: 14px;
     line-height: 1.5;
     color: #ccc;
+    
+    @media (max-width: 768px) {
+        font-size: 12px;
+        margin: 0 0 10px 0;
+    }
 `;
 
 const PlayControls = styled.div`
@@ -69,6 +86,12 @@ const PlayControls = styled.div`
     padding: 15px 25px;
     border-radius: 25px;
     backdrop-filter: blur(10px);
+    
+    @media (max-width: 768px) {
+        bottom: 30px;
+        padding: 12px 20px;
+        gap: 10px;
+    }
 `;
 
 const PlayButton = styled.button`
@@ -89,12 +112,23 @@ const PlayButton = styled.button`
     &:hover {
         background: #7778BC;
     }
+    
+    @media (max-width: 768px) {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
 `;
 
 const StatusText = styled.span`
     color: white;
     font-size: 14px;
     margin-left: 10px;
+    
+    @media (max-width: 768px) {
+        font-size: 12px;
+        margin-left: 5px;
+    }
 `;
 
 const ControlGuide = styled.div`
@@ -152,6 +186,16 @@ const HideHint = styled.div`
     color: rgba(255, 255, 255, 0.6);
     font-size: 12px;
     text-align: right;
+    
+    @media (max-width: 768px) {
+        bottom: 100px;
+        left: 20px;
+        right: 20px;
+        text-align: center;
+        background: rgba(0, 0, 0, 0.5);
+        padding: 10px;
+        border-radius: 8px;
+    }
 `;
 
 
@@ -163,6 +207,7 @@ const Seeun = () => {
     const [showControls, setShowControls] = useState(true);
     const [isPlaying, setIsPlaying] = useState(false);
     const hideControlsTimeoutRef = useRef(null);
+    const [isMobile, setIsMobile] = useState(false);
 
     // Mouse movement handler to show/hide controls
     const handleMouseMove = () => {
@@ -199,8 +244,12 @@ const Seeun = () => {
     function init() {
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
-        const renderer = new THREE.WebGLRenderer();
+        const renderer = new THREE.WebGLRenderer({ 
+            antialias: window.devicePixelRatio === 1,
+            powerPreference: 'high-performance'
+        });
         renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
         renderer.shadowMap.enabled = true;
 
@@ -223,6 +272,13 @@ const Seeun = () => {
         controls.enableZoom = true;
         controls.enableRotate = true;
         controls.enablePan = true;
+        
+        // Touch configuration for mobile
+        controls.touches = {
+            ONE: THREE.TOUCH.ROTATE,
+            TWO: THREE.TOUCH.DOLLY_PAN
+        };
+        
         controls.update();
 
         const audio = document.getElementById('seeunAudio');
@@ -524,8 +580,35 @@ const Seeun = () => {
 
         animate();
 
-        // Mouse event handlers
+        // Mouse and touch event handlers
         document.addEventListener('mousemove', handleMouseMove);
+        
+        // Touch events for mobile
+        let touchStartTime = 0;
+        const handleTouchStart = () => {
+            touchStartTime = Date.now();
+            handleMouseMove();
+        };
+        
+        const handleTouchMove = () => {
+            handleMouseMove();
+        };
+        
+        const handleTouchEnd = () => {
+            const touchDuration = Date.now() - touchStartTime;
+            // Double tap detection (two taps within 300ms)
+            if (touchDuration < 300) {
+                camera.position.set(3, 7, 3);
+                controls.target.set(0, 2.5, 0);
+                controls.update();
+            }
+        };
+        
+        if ('ontouchstart' in window) {
+            renderer.domElement.addEventListener('touchstart', handleTouchStart);
+            renderer.domElement.addEventListener('touchmove', handleTouchMove);
+            renderer.domElement.addEventListener('touchend', handleTouchEnd);
+        }
         
         // Double click to reset camera position
         renderer.domElement.addEventListener('dblclick', () => {
@@ -538,9 +621,13 @@ const Seeun = () => {
         audio.addEventListener('play', () => setIsPlaying(true));
         audio.addEventListener('pause', () => setIsPlaying(false));
 
-        document.addEventListener('resize', () => {
-            renderer.setSize( window.innerWidth, window.innerHeight );
-        })
+        // Handle window resize
+        const handleResize = () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        };
+        window.addEventListener('resize', handleResize)
 
 
         function avg(arr){
@@ -556,6 +643,15 @@ const Seeun = () => {
         return () => {
             // Remove event listeners
             document.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('resize', handleResize);
+            
+            // Remove touch listeners if they were added
+            if ('ontouchstart' in window && renderer && renderer.domElement) {
+                renderer.domElement.removeEventListener('touchstart', handleTouchStart);
+                renderer.domElement.removeEventListener('touchmove', handleTouchMove);
+                renderer.domElement.removeEventListener('touchend', handleTouchEnd);
+            }
+            
             if (renderer && renderer.domElement) {
                 renderer.domElement.removeEventListener('dblclick', () => {});
             }
@@ -589,8 +685,18 @@ const Seeun = () => {
     }
 
     useEffect(() => {
+        // Check if mobile device
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth <= 768 || 'ontouchstart' in window);
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        
         const cleanup = init();
-        return cleanup;
+        return () => {
+            window.removeEventListener('resize', checkMobile);
+            cleanup();
+        };
     }, [])
 
     return (
@@ -604,29 +710,31 @@ const Seeun = () => {
                         이 시각화는 Liszt - Solace 피아노 연주를 바탕으로, 음의 크기와 높낮이를 기반으로 입자들이 움직이는 것을 시각화하여 연주에 더 몰입할 수 있게 합니다.
                     </Description>
                     <Description>
-                        중앙의 구형 시각화기와 주변 파티클들이 음악에 반응하여 실시간으로 변화합니다.
+                        중앙의 구형 시각화와 주변 파티클들이 음악에 반응하여 실시간으로 변화합니다.
                     </Description>
                 </InfoPanel>
                 
-                <ControlGuide>
-                    <GuideTitle>시점 조작 가이드</GuideTitle>
-                    <GuideItem>
-                        <GuideIcon>드래그</GuideIcon>
-                        <GuideText>마우스 좌클릭 + 드래그로 시점 회전</GuideText>
-                    </GuideItem>
-                    <GuideItem>
-                        <GuideIcon>휠</GuideIcon>
-                        <GuideText>마우스 휠로 줌인/줌아웃</GuideText>
-                    </GuideItem>
-                    <GuideItem>
-                        <GuideIcon>우클릭</GuideIcon>
-                        <GuideText>우클릭 + 드래그로 시점 이동</GuideText>
-                    </GuideItem>
-                    <GuideItem>
-                        <GuideIcon>더블클릭</GuideIcon>
-                        <GuideText>더블클릭으로 시점 초기화</GuideText>
-                    </GuideItem>
-                </ControlGuide>
+                {!isMobile && (
+                    <ControlGuide>
+                        <GuideTitle>시점 조작 가이드</GuideTitle>
+                        <GuideItem>
+                            <GuideIcon>드래그</GuideIcon>
+                            <GuideText>마우스 좌클릭 + 드래그로 시점 회전</GuideText>
+                        </GuideItem>
+                        <GuideItem>
+                            <GuideIcon>휠</GuideIcon>
+                            <GuideText>마우스 휠로 줌인/줌아웃</GuideText>
+                        </GuideItem>
+                        <GuideItem>
+                            <GuideIcon>우클릭</GuideIcon>
+                            <GuideText>우클릭 + 드래그로 시점 이동</GuideText>
+                        </GuideItem>
+                        <GuideItem>
+                            <GuideIcon>더블클릭</GuideIcon>
+                            <GuideText>더블클릭으로 시점 초기화</GuideText>
+                        </GuideItem>
+                    </ControlGuide>
+                )}
                 
                 <PlayControls>
                     <PlayButton onClick={togglePlayPause}>
@@ -638,8 +746,12 @@ const Seeun = () => {
                 </PlayControls>
                 
                 <HideHint>
-                    마우스를 정지하면 3초 후 컨트롤이 숨겨집니다<br/>
-                    마우스를 움직이면 다시 나타납니다
+                    {isMobile ? (
+                        <>터치 조작: 한 손가락으로 회전, 두 손가락으로 확대/축소 및 이동</>
+                    ) : (
+                        <>마우스를 정지하면 3초 후 컨트롤이 숨겨집니다<br/>
+                        마우스를 움직이면 다시 나타납니다</>
+                    )}
                 </HideHint>
             </ControlOverlay>
         </Container>
